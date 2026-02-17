@@ -1,0 +1,120 @@
+﻿
+> client@0.0.0 lint
+> eslint .
+
+
+E:\gaurykart\client\src\screens\MyOrdersScreen.jsx
+  3:10  error  'useDispatch' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\gaurykart\client\src\screens\OrderScreen.jsx
+    6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             no-unused-vars
+  452:21  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  450 |         // Automatic Time-based logic (14 days total)
+  451 |         const created = new Date(order.createdAt).getTime();
+> 452 |         const now = Date.now();
+      |                     ^^^^^^^^^^ Cannot call impure function
+  453 |         const diffDays = (now - created) / (1000 * 60 * 60 * 24);
+  454 |
+  455 |         if (diffDays < 1) return 1; // Processing  react-hooks/purity
+
+E:\gaurykart\client\src\screens\PaymentScreen.jsx
+  6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\gaurykart\client\src\screens\PlaceOrderScreen.jsx
+   7:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           no-unused-vars
+  17:55  error  Error: Cannot call impure function during render
+
+`Math.random` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+  15 |     // FOMO Timer State
+  16 |     const [timeLeft, setTimeLeft] = useState(600);
+> 17 |     const [viewers, setViewers] = useState(Math.floor(Math.random() * (148 - 112 + 1)) + 112);
+     |                                                       ^^^^^^^^^^^^^ Cannot call impure function
+  18 |
+  19 |     useEffect(() => {
+  20 |         const intervalId = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 600), 1000);  react-hooks/purity
+
+E:\gaurykart\client\src\screens\ProductListScreen.jsx
+  28:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  26 |     useEffect(() => {
+  27 |         if (userInfo && userInfo.isAdmin) {
+> 28 |             fetchProducts();
+     |             ^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  29 |         } else {
+  30 |             navigate('/login');
+  31 |         }  react-hooks/set-state-in-effect
+
+E:\gaurykart\client\src\screens\ProductScreen.jsx
+  13:17  error  'setQty' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\gaurykart\client\src\screens\ProfileScreen.jsx
+  23:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  21 |             navigate('/login');
+  22 |         } else {
+> 23 |             setName(userInfo.name);
+     |             ^^^^^^^ Avoid calling setState() directly within an effect
+  24 |             setEmail(userInfo.email);
+  25 |             // Fetch Orders
+  26 |             const fetchOrders = async () => {  react-hooks/set-state-in-effect
+
+E:\gaurykart\client\src\screens\ShippingScreen.jsx
+   6:10  error  'motion' is defined but never used. Allowed unused vars must match /^[A-Z_]/u               no-unused-vars
+  15:21  error  'setCountry' is assigned a value but never used. Allowed unused vars must match /^[A-Z_]/u  no-unused-vars
+
+E:\gaurykart\client\src\screens\SiteSettingsScreen.jsx
+  65:18  error  'error' is defined but never used  no-unused-vars
+
+E:\gaurykart\client\src\screens\UserListScreen.jsx
+  33:13  error    Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  31 |     useEffect(() => {
+  32 |         if (userInfo && userInfo.isAdmin) {
+> 33 |             fetchUsers();
+     |             ^^^^^^^^^^ Avoid calling setState() directly within an effect
+  34 |         } else {
+  35 |             navigate('/login');
+  36 |         }  react-hooks/set-state-in-effect
+  37:8   warning  React Hook useEffect has a missing dependency: 'fetchUsers'. Either include it or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         react-hooks/exhaustive-deps
+
+E:\gaurykart\client\src\screens\admin\AdminChatDetailsScreen.jsx
+  26:13  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+  24 |         if (userInfo && userInfo.isAdmin) {
+  25 |             const newSocket = io(ENDPOINT);
+> 26 |             setSocket(newSocket);
+     |             ^^^^^^^^^ Avoid calling setState() directly within an effect
+  27 |
+  28 |             // Join the specific user's room to listen and send messages
+  29 |             newSocket.emit('join_room', userId);  react-hooks/set-state-in-effect
+
+Ô£û 15 problems (14 errors, 1 warning)
+

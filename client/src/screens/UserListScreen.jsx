@@ -12,7 +12,7 @@ const UserListScreen = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchUsers = async () => {
+    const fetchUsers = React.useCallback(async () => {
         try {
             const config = {
                 headers: {
@@ -26,7 +26,7 @@ const UserListScreen = () => {
             setError(err.response?.data?.message || err.message);
             setLoading(false);
         }
-    };
+    }, [userInfo]);
 
     useEffect(() => {
         if (userInfo && userInfo.isAdmin) {
@@ -34,7 +34,7 @@ const UserListScreen = () => {
         } else {
             navigate('/login');
         }
-    }, [userInfo, navigate]);
+    }, [userInfo, navigate, fetchUsers]);
 
     const deleteHandler = async (id) => {
         if (window.confirm('Are you sure you want to delete this user?')) {

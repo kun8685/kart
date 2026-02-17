@@ -56,7 +56,7 @@ const DashboardScreen = () => {
                 setStats({
                     totalSales,
                     totalOrders,
-                    totalProducts: products.length, // Displaying fetched count for now
+                    totalProducts, // Use the calculated total
                     totalUsers,
                     lowStockProducts: lowStockCount,
                 });

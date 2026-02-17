@@ -87,7 +87,7 @@ const LoginScreen = () => {
                             >
                                 Enter Password
                             </label>
-                            <div className="absolute right-0 top-2 text-primary font-bold text-xs cursor-pointer hover:underline">Forgot?</div>
+                            <Link to="/forgot-password" className="absolute right-0 top-2 text-primary font-bold text-xs cursor-pointer hover:underline">Forgot?</Link>
                         </div>
 
                         <div className="text-xs text-gray-500 mt-4">
@@ -109,7 +109,7 @@ const LoginScreen = () => {
                         </div>
 
                         <div className="mt-8 text-center text-xs text-gray-400">
-                            Debug: admin@example.com / 123456
+
                         </div>
                     </form>
                 </div>

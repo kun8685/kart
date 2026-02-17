@@ -1,24 +1,23 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
-import { io } from 'socket.io-client';
+import { getSocket } from '../utils/socket';
 import { MessageCircle, X, Send } from 'lucide-react';
 import axios from 'axios';
-
-const ENDPOINT = import.meta.env.VITE_SERVER_URL || 'http://localhost:5000'; // Adjust for production
 
 const ChatWidget = () => {
     const [isOpen, setIsOpen] = useState(false);
     const [message, setMessage] = useState('');
     const [messages, setMessages] = useState([]);
-    const [socket, setSocket] = useState(null);
+    const socket = useRef(null);
     const messagesEndRef = useRef(null);
 
     const { userInfo } = useSelector((state) => state.auth);
 
     useEffect(() => {
         if (userInfo) {
-            const newSocket = io(ENDPOINT);
-            setSocket(newSocket);
+            // Initialize socket
+            const newSocket = getSocket();
+            socket.current = newSocket;
 
             newSocket.emit('join_room', userInfo._id);
 
@@ -37,11 +36,16 @@ const ChatWidget = () => {
             };
             fetchHistory();
 
+            // Listen for messages
             newSocket.on('receive_message', (message) => {
                 setMessages((prev) => [...prev, message]);
             });
 
-            return () => newSocket.close();
+            // Cleanup
+            return () => {
+                newSocket.disconnect();
+                socket.current = null;
+            };
         }
     }, [userInfo]);
 
@@ -51,17 +55,14 @@ const ChatWidget = () => {
 
     const sendMessage = (e) => {
         e.preventDefault();
-        if (message.trim() && socket && userInfo) {
+        if (message.trim() && socket.current && userInfo) {
             const msgData = {
                 userId: userInfo._id,
                 message: message,
                 sender: 'user'
             };
 
-            // Optimistic update
-            // setMessages((prev) => [...prev, { ...msgData, timestamp: new Date() }]);
-
-            socket.emit('send_message', msgData);
+            socket.current.emit('send_message', msgData);
             setMessage('');
         }
     };

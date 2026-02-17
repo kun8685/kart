@@ -12,16 +12,16 @@ const ProductListScreen = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
-    const fetchProducts = async () => {
+    const fetchProducts = React.useCallback(async () => {
         try {
-            const { data } = await axios.get('/api/products?pageNumber=1'); // Fetch all products logic needs adjustment for no pagination or large limit
+            const { data } = await axios.get('/api/products?pageSize=100');
             setProducts(data.products);
             setLoading(false);
         } catch (error) {
             setError(error.message);
             setLoading(false);
         }
-    };
+    }, []);
 
     useEffect(() => {
         if (userInfo && userInfo.isAdmin) {
@@ -29,7 +29,7 @@ const ProductListScreen = () => {
         } else {
             navigate('/login');
         }
-    }, [userInfo, navigate]);
+    }, [userInfo, navigate, fetchProducts]);
 
     const deleteHandler = async (id) => {
         if (window.confirm('Are you sure you want to delete this product?')) {

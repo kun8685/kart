@@ -6,17 +6,13 @@ import { useSelector } from 'react-redux';
 const MobileNav = () => {
     const location = useLocation();
     const { cartItems } = useSelector((state) => state.cart);
-
-    // Hide mobile nav on product details page so "Add to Cart" buttons are visible
-    if (location.pathname.startsWith('/product/')) {
-        return null;
-    }
+    const { userInfo } = useSelector((state) => state.auth);
 
     const navItems = [
         { name: 'Home', icon: Home, path: '/' },
-        { name: 'Categories', icon: Layers, path: '/search/all' }, // Mock category path
-        { name: 'Cart', icon: ShoppingCart, path: '/cart', badge: cartItems.length },
-        { name: 'Account', icon: User, path: '/login' },
+        { name: 'Categories', icon: Layers, path: '/categories' }, // TODO: Add Category screen
+        { name: 'Cart', icon: ShoppingCart, path: '/cart', badge: cartItems.length > 0 ? cartItems.length : null }, // Fix badge logic
+        { name: userInfo ? 'Account' : 'Login', icon: User, path: userInfo ? '/profile' : '/login' },
     ];
 
     return (

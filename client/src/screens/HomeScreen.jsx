@@ -3,6 +3,30 @@ import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { ChevronLeft, ChevronRight, Star, Heart, Clock, Gift, Tag } from 'lucide-react';
 
+const ProductSection = ({ title, items, bg = "bg-white" }) => (
+    <div className={`container mx-auto px-2 md:px-3 mb-4`}>
+        <div className={`${bg} p-4 rounded-sm shadow-sm border border-gray-200 relative overflow-hidden`}>
+            <div className="flex items-center justify-between border-b pb-3 mb-4">
+                <h2 className="text-lg md:text-xl font-medium text-gray-800">{title}</h2>
+                <Link to="/products" className="bg-primary text-white px-4 py-1.5 rounded-sm text-sm font-bold shadow-sm hover:shadow-md transition">VIEW ALL</Link>
+            </div>
+
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                {items.map((product, idx) => (
+                    <Link to={`/product/${product._id}`} key={idx} className="min-w-[150px] md:min-w-[180px] border border-gray-100 rounded-md p-3 hover:shadow-lg transition flex flex-col items-center text-center cursor-pointer bg-white group">
+                        <div className="w-28 h-28 md:w-36 md:h-36 mb-3 relative">
+                            <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
+                        </div>
+                        <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-1 truncate w-full" title={product.name}>{product.name}</h3>
+                        <span className="text-gray-500 text-xs truncate w-full mb-1">{product.category}</span>
+                        <span className="text-green-600 font-bold text-sm">From ₹{product.price}</span>
+                    </Link>
+                ))}
+            </div>
+        </div>
+    </div>
+);
+
 const HomeScreen = () => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
@@ -21,14 +45,16 @@ const HomeScreen = () => {
     const activeSlides = content?.heroSlides?.length > 0 ? content.heroSlides : defaultSlides;
 
     const categories = [
-        { name: 'Mobiles', img: 'https://rukminim1.flixcart.com/flap/80/80/image/22fddf3c7da4c4f4.png?q=100' },
-        { name: 'Fashion', img: 'https://rukminim1.flixcart.com/fk-p-flap/80/80/image/0d75b34f7d8fbcb3.png?q=100' },
         { name: 'Electronics', img: 'https://rukminim1.flixcart.com/flap/80/80/image/69c6589653afdb9a.png?q=100' },
-        { name: 'Home & Furniture', img: 'https://rukminim1.flixcart.com/flap/80/80/image/ab7e2b022a4587dd.jpg?q=100' },
-        { name: 'Appliances', img: 'https://rukminim1.flixcart.com/flap/80/80/image/0ff199d1bd27eb98.png?q=100' },
-        { name: 'Travel', img: 'https://rukminim1.flixcart.com/flap/80/80/image/71050627a56cb900.png?q=100' },
-        { name: 'Beauty, Toys & More', img: 'https://rukminim1.flixcart.com/flap/80/80/image/dff3f7adcf3a90c6.png?q=100' },
-        { name: 'Two Wheelers', img: 'https://rukminim1.flixcart.com/fk-p-flap/80/80/image/05d708653beff948.png?q=100' },
+        { name: 'Fashion', img: 'https://rukminim1.flixcart.com/fk-p-flap/80/80/image/0d75b34f7d8fbcb3.png?q=100' },
+        { name: 'Footwear', img: 'https://cdn-icons-png.flaticon.com/128/2589/2589903.png' },
+        { name: 'Beauty & Personal Care', img: 'https://rukminim1.flixcart.com/flap/80/80/image/dff3f7adcf3a90c6.png?q=100' },
+        { name: 'Home & Appliances', img: 'https://rukminim1.flixcart.com/flap/80/80/image/ab7e2b022a4587dd.jpg?q=100' },
+        { name: 'Sports & Fitness', img: 'https://cdn-icons-png.flaticon.com/128/2964/2964514.png' },
+        { name: 'Toys & Baby', img: 'https://cdn-icons-png.flaticon.com/128/3081/3081329.png' },
+        { name: 'Books', img: 'https://cdn-icons-png.flaticon.com/128/2232/2232688.png' },
+        { name: 'Grocery', img: 'https://rukminim1.flixcart.com/flap/80/80/image/29327f40e9c4d26b.png?q=100' },
+        { name: 'Accessories', img: 'https://cdn-icons-png.flaticon.com/128/2919/2919722.png' },
     ];
 
     const nextSlide = () => {
@@ -67,29 +93,7 @@ const HomeScreen = () => {
     if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div></div>;
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
 
-    const ProductSection = ({ title, items, bg = "bg-white" }) => (
-        <div className={`container mx-auto px-2 md:px-3 mb-4`}>
-            <div className={`${bg} p-4 rounded-sm shadow-sm border border-gray-200 relative overflow-hidden`}>
-                <div className="flex items-center justify-between border-b pb-3 mb-4">
-                    <h2 className="text-lg md:text-xl font-medium text-gray-800">{title}</h2>
-                    <Link to="/products" className="bg-primary text-white px-4 py-1.5 rounded-sm text-sm font-bold shadow-sm hover:shadow-md transition">VIEW ALL</Link>
-                </div>
 
-                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                    {items.map((product, idx) => (
-                        <div key={idx} className="min-w-[150px] md:min-w-[180px] border border-gray-100 rounded-md p-3 hover:shadow-lg transition flex flex-col items-center text-center cursor-pointer bg-white group">
-                            <div className="w-28 h-28 md:w-36 md:h-36 mb-3 relative">
-                                <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
-                            </div>
-                            <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-1 truncate w-full" title={product.name}>{product.name}</h3>
-                            <span className="text-gray-500 text-xs truncate w-full mb-1">{product.category}</span>
-                            <span className="text-green-600 font-bold text-sm">From ₹{product.price}</span>
-                        </div>
-                    ))}
-                </div>
-            </div>
-        </div>
-    );
 
     return (
         <div className="bg-[#f1f2f4] min-h-screen pb-8">
@@ -159,7 +163,7 @@ const HomeScreen = () => {
 
                     {/* Products Slider/Grid */}
                     <div className="w-full md:w-4/5 p-4 md:p-6 flex items-center gap-4 overflow-x-auto no-scrollbar pt-12 md:pt-6">
-                        {products.slice(0, 5).map((product) => (
+                        {products && products.slice && products.slice(0, 5).map((product) => (
                             <Link to={`/product/${product._id}`} key={product._id} className="min-w-[150px] md:min-w-[180px] flex flex-col items-center gap-2 group cursor-pointer p-2 hover:bg-gray-50 rounded transition">
                                 <div className="w-32 h-32 md:w-40 md:h-40 relative mb-2">
                                     <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
@@ -176,14 +180,7 @@ const HomeScreen = () => {
             {/* Section 1: Best of Electronics */}
             <ProductSection title="Best of Electronics" items={products} />
 
-            {/* Ad Grid - 3 Banners */}
-            <div className="container mx-auto px-2 md:px-3 mb-4">
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-                    <img src="https://rukminim1.flixcart.com/fk-p-flap/520/280/image/6ae6496d8f33749e.jpg?q=20" className="w-full rounded-sm shadow-sm cursor-pointer hover:shadow-md transition" alt="Ad 1" />
-                    <img src="https://rukminim1.flixcart.com/fk-p-flap/520/280/image/3340b49cbcbde879.jpg?q=20" className="w-full rounded-sm shadow-sm cursor-pointer hover:shadow-md transition" alt="Ad 2" />
-                    <img src="https://rukminim1.flixcart.com/fk-p-flap/520/280/image/625395642646d2cb.jpg?q=20" className="w-full rounded-sm shadow-sm cursor-pointer hover:shadow-md transition" alt="Ad 3" />
-                </div>
-            </div>
+
 
             {/* Section 2: Beauty, Food, Toys & More */}
             <ProductSection title="Beauty, Food, Toys & More" items={[...products].reverse()} />
@@ -207,13 +204,13 @@ const HomeScreen = () => {
                                     <Heart size={16} />
                                 </button>
 
-                                <div className="relative h-40 mb-2 p-2">
+                                <Link to={`/product/${product?._id}`} className="block relative h-40 mb-2 p-2">
                                     <img
                                         src={product.image}
                                         alt={product.name}
                                         className="w-full h-full object-contain group-hover:scale-105 transition duration-500"
                                     />
-                                </div>
+                                </Link>
                                 <div className="mt-auto">
                                     <h3 className="text-xs font-medium text-gray-500 mb-1 truncate">{product.brand || 'Brand'}</h3>
                                     <Link to={`/product/${product?._id}`}>

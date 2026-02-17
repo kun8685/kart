@@ -1,8 +1,10 @@
-import React, { useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useEffect, useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { clearCart } from '../slices/cartSlice';
+import { clearCart, savePaymentMethod } from '../slices/cartSlice';
 import axios from 'axios';
+import { MapPin, CreditCard, ShoppingBag, ShieldCheck, Clock, CheckCircle, Flame, BatteryWarning, Zap } from 'lucide-react';
+
 
 const PlaceOrderScreen = () => {
     const navigate = useNavigate();
@@ -10,35 +12,81 @@ const PlaceOrderScreen = () => {
     const cart = useSelector((state) => state.cart);
     const { userInfo } = useSelector((state) => state.auth);
 
-    // Calculate Prices
-    const addDecimals = (num) => {
-        return (Math.round(num * 100) / 100).toFixed(2);
+    // FOMO Timer State
+    const [timeLeft, setTimeLeft] = useState(600);
+    const [viewers, setViewers] = useState(() => Math.floor(Math.random() * (148 - 112 + 1)) + 112);
+
+    useEffect(() => {
+        const intervalId = setInterval(() => setTimeLeft(prev => prev > 0 ? prev - 1 : 600), 1000);
+        return () => clearInterval(intervalId);
+    }, []);
+
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setViewers(prev => {
+                const change = Math.floor(Math.random() * 9) - 3;
+                const newState = prev + change;
+                if (newState < 105) return 105 + Math.floor(Math.random() * 5);
+                if (newState > 180) return 180 - Math.floor(Math.random() * 5);
+                return newState;
+            });
+        }, 3500);
+        return () => clearInterval(interval);
+    }, []);
+
+    const formatTime = (seconds) => {
+        const minutes = Math.floor(seconds / 60);
+        const remainingSeconds = seconds % 60;
+        return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
     };
 
+    // Calculate Prices
+    const addDecimals = (num) => (Math.round(num * 100) / 100).toFixed(2);
     const itemsPriceNumber = cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
     const itemsPrice = addDecimals(itemsPriceNumber);
 
+    const initialPaymentMethod = (cart.paymentMethod === 'Razorpay' ? 'Online' : cart.paymentMethod) || 'Online';
+    const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(initialPaymentMethod);
+
+    useEffect(() => {
+        dispatch(savePaymentMethod(selectedPaymentMethod));
+    }, [selectedPaymentMethod, dispatch]);
+
     // Shipping Logic
-    const standardShipping = 0; // Removed standard automatic shipping
-    const extraShipping = cart.cartItems.reduce((acc, item) => acc + (item.shippingPrice || 0) * item.qty, 0);
-    const shippingPrice = addDecimals(standardShipping + extraShipping);
+    let shippingCost = 0;
+    const isOnlinePayment = selectedPaymentMethod === 'Online' || selectedPaymentMethod === 'Razorpay';
+    if (isOnlinePayment) {
+        shippingCost = 0;
+    } else {
+        if (itemsPriceNumber <= 599) shippingCost = 49;
+        else if (itemsPriceNumber <= 999) shippingCost = 69;
+        else shippingCost = 99;
+    }
+
+    const shippingPrice = addDecimals(shippingCost);
     const taxPrice = addDecimals(Number((0.18 * itemsPrice).toFixed(2)));
-    const totalPrice = (
-        Number(itemsPrice) +
-        Number(shippingPrice) +
-        Number(taxPrice)
-    ).toFixed(2);
+    const totalPrice = (Number(itemsPrice) + Number(shippingPrice) + Number(taxPrice)).toFixed(2);
 
     useEffect(() => {
         if (!cart.shippingAddress.address) {
             navigate('/shipping');
-        } else if (!cart.paymentMethod) {
-            navigate('/payment');
         }
-    }, [cart.paymentMethod, cart.shippingAddress.address, navigate]);
+    }, [cart.shippingAddress.address, navigate]);
 
-    const placeOrderHandler = async () => {
+    // --- PAYMENT INTEGRATION ---
+    const loadRazorpay = () => {
+        return new Promise((resolve) => {
+            const script = document.createElement('script');
+            script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+            script.onload = () => resolve(true);
+            script.onerror = () => resolve(false);
+            document.body.appendChild(script);
+        });
+    };
+
+    const handlePaymentAndOrder = async () => {
         try {
+            // 1. Create Order (Pending State)
             const config = {
                 headers: {
                     'Content-Type': 'application/json',
@@ -46,107 +94,267 @@ const PlaceOrderScreen = () => {
                 },
             };
 
-            const { data } = await axios.post(
-                '/api/orders',
-                {
-                    orderItems: cart.cartItems,
-                    shippingAddress: cart.shippingAddress,
-                    paymentMethod: cart.paymentMethod,
-                    itemsPrice: itemsPrice,
-                    shippingPrice: shippingPrice,
-                    taxPrice: taxPrice,
-                    totalPrice: totalPrice,
-                },
-                config
-            );
+            const orderData = {
+                orderItems: cart.cartItems,
+                shippingAddress: cart.shippingAddress,
+                paymentMethod: selectedPaymentMethod,
+                itemsPrice: itemsPrice,
+                shippingPrice: shippingPrice,
+                taxPrice: taxPrice,
+                totalPrice: totalPrice,
+            };
 
-            dispatch(clearCart());
-            navigate(`/order/${data._id}`);
+            const { data: createdOrder } = await axios.post('/api/orders', orderData, config);
+            const orderId = createdOrder._id;
+
+            // 2. Initiate Payment IMMEDIATEY (Don't navigate away)
+            const res = await loadRazorpay();
+            if (!res) {
+                alert('Payment SDK failed to load. Are you online?');
+                return;
+            }
+
+            // Get Key
+            const { data: { key } } = await axios.get('/api/payment/razorpay/key', config);
+
+            // Calculate Amount to Pay
+            // If Online: Pay Total
+            // If COD: Pay Shipping Only
+            const amountToPay = isOnlinePayment ? totalPrice : shippingPrice;
+
+            // Create Razorpay Order
+            const { data: razorpayOrder } = await axios.post('/api/payment/razorpay', {
+                amount: amountToPay,
+                receipt: orderId,
+            }, config);
+
+            const options = {
+                key: key,
+                amount: razorpayOrder.amount,
+                currency: razorpayOrder.currency,
+                name: 'GauryKart',
+                description: isOnlinePayment ? `Order #${orderId}` : `Delivery Fee for #${orderId}`,
+                order_id: razorpayOrder.id,
+                handler: async function (response) {
+                    try {
+                        // Verify Payment
+                        await axios.post('/api/payment/razorpay/verify', {
+                            razorpay_order_id: response.razorpay_order_id,
+                            razorpay_payment_id: response.razorpay_payment_id,
+                            razorpay_signature: response.razorpay_signature,
+                            order_id: orderId,
+                        }, config);
+
+                        // Success! NOW we clear cart and navigate
+                        dispatch(clearCart());
+                        navigate(`/order/${orderId}`);
+                    } catch (error) {
+                        console.error(error);
+                        alert('Payment Verification Failed. Please contact support.');
+                    }
+                },
+                prefill: {
+                    name: userInfo.name,
+                    email: userInfo.email,
+                },
+                theme: {
+                    color: '#2874f0',
+                },
+                modal: {
+                    ondismiss: function () {
+                        // User closed the popup without paying. 
+                        // We DO NOT navigate to success page. We stay here.
+                        // Order exists in backend as "Pending", which is fine (abandoned cart).
+                        console.log('Payment modal closed');
+                    }
+                }
+            };
+
+            if (!window.Razorpay) {
+                alert('Razorpay SDK failed to load. Please check your internet connection.');
+                return;
+            }
+
+            const paymentObject = new window.Razorpay(options);
+            paymentObject.open();
+
         } catch (error) {
             console.error(error);
-            alert(error.response?.data?.message || error.message);
+            alert(error.response?.data?.message || 'Something went wrong creating the order.');
         }
     };
 
     return (
-        <div className="container mx-auto px-4 py-8 bg-gray-50 min-h-screen">
-            <div className="flex flex-col lg:flex-row gap-8">
-                <div className="lg:w-2/3 space-y-6">
-                    <div className="bg-white p-6 rounded shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 uppercase tracking-wide border-b pb-2">Shipping</h2>
-                        <p className="text-gray-600">
-                            <strong className="text-gray-900">Address: </strong>
-                            {cart.shippingAddress.address}, {cart.shippingAddress.city} {cart.shippingAddress.postalCode}, {cart.shippingAddress.country}
-                        </p>
-                    </div>
+        <div className="min-h-screen bg-gray-50 py-6 font-sans">
+            <div className="container mx-auto px-4 max-w-6xl">
+                {/* Visual Progress */}
+                <div className="flex items-center justify-center mb-6 text-xs sm:text-sm font-medium text-gray-400">
+                    <span>Address</span>
+                    <div className="w-8 h-0.5 bg-gray-300 mx-2"></div>
+                    <span className="text-primary font-bold">Review & Pay</span>
+                    <div className="w-8 h-0.5 bg-gray-300 mx-2"></div>
+                    <span>Complete</span>
+                </div>
 
-                    <div className="bg-white p-6 rounded shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 uppercase tracking-wide border-b pb-2">Payment Method</h2>
-                        <p className="text-gray-600">
-                            <strong className="text-gray-900">Method: </strong>
-                            {cart.paymentMethod}
-                        </p>
-                    </div>
+                {/* FOMO & Urgency Banners */}
+                <div className="space-y-3 mb-6">
+                    <motion.div
+                        initial={{ opacity: 0, y: -10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        className="bg-red-600 text-white rounded-lg p-3 flex items-center justify-between shadow-md"
+                    >
+                        <div className="flex items-center gap-2">
+                            <Clock size={20} className="animate-pulse" />
+                            <span className="font-bold text-sm sm:text-base">
+                                Offers expire in {formatTime(timeLeft)}
+                            </span>
+                        </div>
+                        <span className="bg-white text-red-600 px-2 py-0.5 rounded text-xs font-bold uppercase">Reserve Yours</span>
+                    </motion.div>
 
-                    <div className="bg-white p-6 rounded shadow-sm border border-gray-100">
-                        <h2 className="text-xl font-bold mb-4 text-gray-800 uppercase tracking-wide border-b pb-2">Order Items</h2>
-                        {cart.cartItems.length === 0 ? (
-                            <p>Your cart is empty</p>
-                        ) : (
-                            <div className="space-y-4">
-                                {cart.cartItems.map((item, index) => (
-                                    <div key={index} className="flex items-center gap-4 border-b pb-4 last:border-0 last:pb-0">
-                                        <img src={item.image} alt={item.name} className="w-16 h-16 object-contain rounded" />
+                    <div className="flex gap-3 overflow-x-auto no-scrollbar">
+                        <div className="flex items-center gap-2 bg-orange-100 text-orange-800 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-orange-200">
+                            <Flame size={14} className="fill-orange-500 text-orange-500" /> {viewers} people viewing this
+                        </div>
+                        <div className="flex items-center gap-2 bg-yellow-100 text-yellow-800 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap border border-yellow-200">
+                            <BatteryWarning size={14} /> Low Stock - Selling Fast!
+                        </div>
+                    </div>
+                </div>
+
+                <div className="flex flex-col lg:flex-row gap-6">
+                    {/* Left Column */}
+                    <div className="lg:w-2/3 space-y-5">
+                        {/* Address */}
+                        <div className="bg-white p-4 rounded-xl shadow-sm border border-gray-100 flex justify-between items-center">
+                            <div className="flex items-center gap-3">
+                                <div className="bg-gray-100 p-2 rounded-full text-gray-500">
+                                    <MapPin size={18} />
+                                </div>
+                                <div className="text-sm">
+                                    <p className="font-bold text-gray-800">Delivering to:</p>
+                                    <p className="text-gray-600 truncate max-w-[200px] sm:max-w-xs">{cart.shippingAddress.address}, {cart.shippingAddress.city}...</p>
+                                </div>
+                            </div>
+                            <button onClick={() => navigate('/shipping')} className="text-primary text-sm font-bold hover:underline">Change</button>
+                        </div>
+
+                        {/* Payment Selection */}
+                        <div className="bg-white p-6 rounded-xl shadow-md border border-gray-100 relative overflow-hidden">
+                            <div className="absolute top-0 left-0 w-1 h-full bg-primary"></div>
+                            <h2 className="text-lg font-bold text-gray-800 flex items-center gap-2 mb-4">
+                                <CreditCard size={20} className="text-primary" /> Select Payment Mode
+                            </h2>
+
+                            <div className="space-y-3">
+                                <div
+                                    onClick={() => setSelectedPaymentMethod('Online')}
+                                    className={`relative border rounded-xl p-4 cursor-pointer transition-all ${isOnlinePayment ? 'border-primary bg-blue-50 ring-1 ring-primary' : 'border-gray-200 hover:border-gray-300'}`}
+                                >
+                                    <div className="absolute -top-2 right-4 bg-green-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full shadow-sm animate-pulse">
+                                        FREE DELIVERY
+                                    </div>
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${isOnlinePayment ? 'border-primary' : 'border-gray-300'}`}>
+                                            {isOnlinePayment && <div className="w-2.5 h-2.5 bg-primary rounded-full" />}
+                                        </div>
                                         <div className="flex-1">
-                                            <Link to={`/product/${item.product}`} className="font-medium text-gray-800 hover:text-primary">
-                                                {item.name}
-                                            </Link>
+                                            <p className="font-bold text-gray-800 flex items-center gap-2">
+                                                Pay Online (UPI / Card / NetBanking)
+                                                <Zap size={14} className="fill-yellow-400 text-yellow-400" />
+                                            </p>
+                                            <p className="text-xs text-green-600 font-medium">Extra Rewards + Instant Refund</p>
                                         </div>
-                                        <div className="text-gray-600 font-medium">
-                                            {item.qty} x ₹{item.price} = ₹{item.qty * item.price}
+                                    </div>
+                                </div>
+
+                                <div
+                                    onClick={() => setSelectedPaymentMethod('COD')}
+                                    className={`relative border rounded-xl p-4 cursor-pointer transition-all ${selectedPaymentMethod === 'COD' ? 'border-gray-600 bg-gray-50 ring-1 ring-gray-600' : 'border-gray-200 hover:border-gray-300'}`}
+                                >
+                                    <div className="flex items-center gap-3">
+                                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'COD' ? 'border-gray-600' : 'border-gray-300'}`}>
+                                            {selectedPaymentMethod === 'COD' && <div className="w-2.5 h-2.5 bg-gray-600 rounded-full" />}
                                         </div>
+                                        <div className="flex-1">
+                                            <p className="font-bold text-gray-700">Cash on Delivery</p>
+                                            <p className="text-xs text-red-500 font-medium">
+                                                + ₹{itemsPriceNumber <= 599 ? 49 : itemsPriceNumber <= 999 ? 69 : 99} Delivery Charges Apply
+                                            </p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Items */}
+                        <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                            <h2 className="text-base font-bold text-gray-800 mb-3 flex items-center gap-2">
+                                <ShoppingBag size={18} /> Items ({cart.cartItems.length})
+                            </h2>
+                            <div className="space-y-4 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+                                {cart.cartItems.map((item, index) => (
+                                    <div key={index} className="flex gap-3 items-center border-b border-dashed border-gray-200 pb-3 last:border-0 last:pb-0">
+                                        <img src={item.image} alt={item.name} className="w-12 h-12 object-contain bg-gray-50 rounded p-1" />
+                                        <div className="flex-1 min-w-0">
+                                            <p className="text-sm font-medium text-gray-800 truncate">{item.name}</p>
+                                            <p className="text-xs text-gray-500">Qty: {item.qty} × ₹{item.price}</p>
+                                        </div>
+                                        <p className="font-bold text-sm">₹{item.qty * item.price}</p>
                                     </div>
                                 ))}
                             </div>
-                        )}
+                        </div>
                     </div>
-                </div>
 
-                <div className="lg:w-1/3">
-                    <div className="bg-white p-6 rounded shadow-sm sticky top-24 border border-gray-100">
-                        <h2 className="text-lg font-bold border-b pb-3 mb-4 text-gray-600 uppercase">Order Summary</h2>
-                        <div className="space-y-3 mb-6 text-sm">
-                            <div className="flex justify-between">
-                                <span>Items</span>
-                                <span>₹{itemsPrice}</span>
+                    {/* Right Column */}
+                    <div className="lg:w-1/3">
+                        <div className="bg-white p-5 rounded-2xl shadow-lg border border-gray-200 sticky top-4">
+                            <h2 className="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Bill Details</h2>
+                            <div className="space-y-2 text-sm text-gray-600 mb-4">
+                                <div className="flex justify-between">
+                                    <span>Item Total</span>
+                                    <span>₹{itemsPrice}</span>
+                                </div>
+                                <div className="flex justify-between items-center">
+                                    <span>Delivery Fee</span>
+                                    <span className={Number(shippingPrice) === 0 ? "text-green-600 font-bold" : "text-gray-900"}>
+                                        {Number(shippingPrice) === 0 ? "FREE" : `₹${shippingPrice}`}
+                                    </span>
+                                </div>
+                                <div className="flex justify-between">
+                                    <span>Taxes</span>
+                                    <span>₹{taxPrice}</span>
+                                </div>
                             </div>
-                            <div className="flex justify-between">
-                                <span>Shipping</span>
-                                <span>₹{shippingPrice}</span>
+
+                            <div className="border-t border-dashed border-gray-300 pt-3 mb-4">
+                                <div className="flex justify-between items-center text-xl font-bold text-gray-900">
+                                    <span>To Pay</span>
+                                    <span>₹{totalPrice}</span>
+                                </div>
+                                <p className="text-[10px] text-right text-gray-400 mt-1">Inclusive of all taxes</p>
                             </div>
-                            <div className="flex justify-between">
-                                <span>Tax (GST)</span>
-                                <span>₹{taxPrice}</span>
+
+                            <motion.button
+                                whileHover={{ scale: 1.02 }}
+                                whileTap={{ scale: 0.95 }}
+                                type="button"
+                                className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-lg font-extrabold py-4 rounded-xl shadow-xl shadow-orange-500/20 transition-all uppercase tracking-wider mb-3 animate-pulse-slow"
+                                onClick={handlePaymentAndOrder}
+                            >
+                                CONFIRM & PAY
+                            </motion.button>
+
+                            <div className="bg-gray-50 p-2 rounded text-[10px] text-gray-500 text-center flex justify-center gap-4">
+                                <span className="flex items-center gap-1"><ShieldCheck size={12} /> Secure Payment</span>
+                                <span className="flex items-center gap-1"><CheckCircle size={12} /> 100% Genuine</span>
                             </div>
                         </div>
-
-                        <div className="border-t border-dashed border-gray-300 pt-4 mb-6">
-                            <div className="flex justify-between font-bold text-lg text-gray-800">
-                                <span>Total</span>
-                                <span>₹{totalPrice}</span>
-                            </div>
-                        </div>
-
-                        <button
-                            type="button"
-                            className="w-full bg-yellow-500 hover:bg-yellow-600 text-white py-3 rounded font-bold shadow transition uppercase tracking-wide"
-                            onClick={placeOrderHandler}
-                        >
-                            Place Order
-                        </button>
                     </div>
                 </div>
             </div>
+            <style>{`.animate-pulse-slow { animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite; } @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: .9; } }`}</style>
         </div>
     );
 };

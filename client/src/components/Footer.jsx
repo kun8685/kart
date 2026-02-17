@@ -1,4 +1,5 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Heart, Facebook, Twitter, Instagram, MapPin, Mail, Phone, ShoppingBag } from 'lucide-react';
 
 const Footer = () => {
@@ -11,12 +12,12 @@ const Footer = () => {
                 <div>
                     <h6 className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-wide">About</h6>
                     <ul className="space-y-2 text-xs font-medium">
-                        <li><a href="#" className="hover:underline text-white">Contact Us</a></li>
-                        <li><a href="#" className="hover:underline text-white">About Us</a></li>
-                        <li><a href="#" className="hover:underline text-white">Careers</a></li>
-                        <li><a href="#" className="hover:underline text-white">Gaurykart Stories</a></li>
-                        <li><a href="#" className="hover:underline text-white">Press</a></li>
-                        <li><a href="#" className="hover:underline text-white">Corporate Information</a></li>
+                        <li><Link to="/info/contact" className="hover:underline text-white">Contact Us</Link></li>
+                        <li><Link to="/info/about" className="hover:underline text-white">About Us</Link></li>
+                        <li><Link to="/info/careers" className="hover:underline text-white">Careers</Link></li>
+                        <li><Link to="/info/stories" className="hover:underline text-white">Gaurykart Stories</Link></li>
+                        <li><Link to="/info/press" className="hover:underline text-white">Press</Link></li>
+                        <li><Link to="/info/corporate" className="hover:underline text-white">Corporate Information</Link></li>
                     </ul>
                 </div>
 
@@ -24,11 +25,11 @@ const Footer = () => {
                 <div>
                     <h6 className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-wide">Help</h6>
                     <ul className="space-y-2 text-xs font-medium">
-                        <li><a href="#" className="hover:underline text-white">Payments</a></li>
-                        <li><a href="#" className="hover:underline text-white">Shipping</a></li>
-                        <li><a href="#" className="hover:underline text-white">Cancellation & Returns</a></li>
-                        <li><a href="#" className="hover:underline text-white">FAQ</a></li>
-                        <li><a href="#" className="hover:underline text-white">Report Infringement</a></li>
+                        <li><Link to="/info/payments" className="hover:underline text-white">Payments</Link></li>
+                        <li><Link to="/info/shipping" className="hover:underline text-white">Shipping</Link></li>
+                        <li><Link to="/info/cancellation-returns" className="hover:underline text-white">Cancellation & Returns</Link></li>
+                        <li><Link to="/info/faq" className="hover:underline text-white">FAQ</Link></li>
+                        <li><Link to="/info/infringement" className="hover:underline text-white">Report Infringement</Link></li>
                     </ul>
                 </div>
 
@@ -36,12 +37,12 @@ const Footer = () => {
                 <div>
                     <h6 className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-wide">Consumer Policy</h6>
                     <ul className="space-y-2 text-xs font-medium">
-                        <li><a href="#" className="hover:underline text-white">Return Policy</a></li>
-                        <li><a href="#" className="hover:underline text-white">Terms of Use</a></li>
-                        <li><a href="#" className="hover:underline text-white">Security</a></li>
-                        <li><a href="#" className="hover:underline text-white">Privacy</a></li>
-                        <li><a href="#" className="hover:underline text-white">Sitemap</a></li>
-                        <li><a href="#" className="hover:underline text-white">EPR Compliance</a></li>
+                        <li><Link to="/info/return-policy" className="hover:underline text-white">Return Policy</Link></li>
+                        <li><Link to="/info/terms" className="hover:underline text-white">Terms of Use</Link></li>
+                        <li><Link to="/info/security" className="hover:underline text-white">Security</Link></li>
+                        <li><Link to="/info/privacy" className="hover:underline text-white">Privacy</Link></li>
+                        <li><Link to="/info/sitemap" className="hover:underline text-white">Sitemap</Link></li>
+                        <li><Link to="/info/epr" className="hover:underline text-white">EPR Compliance</Link></li>
                     </ul>
                 </div>
 
@@ -55,14 +56,14 @@ const Footer = () => {
                     </div>
 
                     <h6 className="text-gray-400 text-xs font-bold uppercase mb-4 tracking-wide">Mail Us:</h6>
-                    <p className="text-xs leading-relaxed mb-4">
+                    <address className="text-xs leading-relaxed mb-4 not-italic">
                         Gaurykart Internet Private Limited,<br />
                         Buildings Alyssa, Begonia &<br />
                         Clove Embassy Tech Village,<br />
                         Outer Ring Road, Devarabeesanahalli Village,<br />
                         Bengaluru, 560103,<br />
                         Karnataka, India
-                    </p>
+                    </address>
                 </div>
             </div>
 

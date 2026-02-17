@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Save, Plus, Trash, Image as ImageIcon, Link as LinkIcon, Monitor } from 'lucide-react';
 import axios from 'axios';
@@ -56,7 +57,7 @@ const SiteSettingsScreen = () => {
             const config = {
                 headers: {
                     'Content-Type': 'application/json',
-                    Authorization: `Bearer ${userInfo.token}`,
+                    Authorization: `Bearer ${userInfo.token} `,
                 },
             };
             await axios.put('/api/content', content, config);

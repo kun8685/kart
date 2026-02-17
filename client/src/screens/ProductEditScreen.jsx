@@ -17,6 +17,8 @@ const ProductEditScreen = () => {
     const [countInStock, setCountInStock] = useState(0);
     const [shippingPrice, setShippingPrice] = useState(0);
     const [description, setDescription] = useState('');
+    const [sizes, setSizes] = useState('');
+    const [colors, setColors] = useState('');
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
 
@@ -37,6 +39,8 @@ const ProductEditScreen = () => {
                 setCountInStock(data.countInStock);
                 setShippingPrice(data.shippingPrice || 0);
                 setDescription(data.description);
+                setSizes(data.sizes ? data.sizes.join(', ') : '');
+                setColors(data.colors ? data.colors.join(', ') : '');
                 setLoading(false);
             } catch (error) {
                 setError(error.message);
@@ -68,6 +72,8 @@ const ProductEditScreen = () => {
                     countInStock,
                     shippingPrice,
                     description,
+                    sizes: sizes ? sizes.split(',').map(s => s.trim()).filter(s => s) : [],
+                    colors: colors ? colors.split(',').map(c => c.trim()).filter(c => c) : [],
                 },
                 config
             );
@@ -160,13 +166,46 @@ const ProductEditScreen = () => {
 
                     <div>
                         <label className="block text-gray-700 text-sm font-bold mb-2">Category</label>
-                        <input
-                            type="text"
-                            placeholder="Enter category"
+                        <select
                             value={category}
                             onChange={(e) => setCategory(e.target.value)}
-                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                        />
+                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary bg-white"
+                        >
+                            <option value="">Select Category</option>
+                            <option value="Electronics">Electronics</option>
+                            <option value="Fashion">Fashion</option>
+                            <option value="Footwear">Footwear</option>
+                            <option value="Beauty & Personal Care">Beauty & Personal Care</option>
+                            <option value="Home & Appliances">Home & Appliances</option>
+                            <option value="Sports & Fitness">Sports & Fitness</option>
+                            <option value="Toys & Baby">Toys & Baby</option>
+                            <option value="Books">Books</option>
+                            <option value="Grocery">Grocery</option>
+                            <option value="Accessories">Accessories</option>
+                        </select>
+                    </div>
+
+                    <div className="flex gap-4">
+                        <div className="flex-1">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Sizes (comma separated)</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. S, M, L, XL"
+                                value={sizes}
+                                onChange={(e) => setSizes(e.target.value)}
+                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Colors (comma separated)</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Red, Blue, Black"
+                                value={colors}
+                                onChange={(e) => setColors(e.target.value)}
+                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
                     </div>
 
                     <div>
