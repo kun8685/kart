@@ -4,29 +4,33 @@ import axios from 'axios';
 import { ChevronLeft, ChevronRight, Star, Heart, Clock, Gift, Tag, X, Mail, Check } from 'lucide-react';
 import { HomeSkeleton } from '../components/ProductSkeleton';
 
-const ProductSection = ({ title, items, bg = "bg-white" }) => (
-    <div className={`container mx-auto px-2 md:px-3 mb-4`}>
-        <div className={`${bg} p-4 rounded-sm shadow-sm border border-gray-200 relative overflow-hidden`}>
-            <div className="flex items-center justify-between border-b pb-3 mb-4">
-                <h2 className="text-lg md:text-xl font-medium text-gray-800">{title}</h2>
-                <Link to="/products" className="bg-primary text-white px-4 py-1.5 rounded-sm text-sm font-bold shadow-sm hover:shadow-md transition">VIEW ALL</Link>
-            </div>
+const ProductSection = ({ title, items, bg = "bg-white" }) => {
+    if (!items || items.length === 0) return null;
 
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
-                {items.map((product, idx) => (
-                    <Link to={`/product/${product._id}`} key={idx} className="min-w-[150px] md:min-w-[180px] border border-gray-100 rounded-md p-3 hover:shadow-lg transition flex flex-col items-center text-center cursor-pointer bg-white group">
-                        <div className="w-28 h-28 md:w-36 md:h-36 mb-3 relative">
-                            <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
-                        </div>
-                        <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-1 truncate w-full" title={product.name}>{product.name}</h3>
-                        <span className="text-gray-500 text-xs truncate w-full mb-1">{product.category}</span>
-                        <span className="text-green-600 font-bold text-sm">From ₹{product.price}</span>
-                    </Link>
-                ))}
+    return (
+        <div className={`container mx-auto px-2 md:px-3 mb-4`}>
+            <div className={`${bg} p-4 rounded-sm shadow-sm border border-gray-200 relative overflow-hidden`}>
+                <div className="flex items-center justify-between border-b pb-3 mb-4">
+                    <h2 className="text-lg md:text-xl font-medium text-gray-800">{title}</h2>
+                    <Link to="/products" className="bg-primary text-white px-4 py-1.5 rounded-sm text-sm font-bold shadow-sm hover:shadow-md transition">VIEW ALL</Link>
+                </div>
+
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-2">
+                    {items.map((product, idx) => (
+                        <Link to={`/product/${product._id}`} key={idx} className="min-w-[150px] md:min-w-[180px] border border-gray-100 rounded-md p-3 hover:shadow-lg transition flex flex-col items-center text-center cursor-pointer bg-white group">
+                            <div className="w-28 h-28 md:w-36 md:h-36 mb-3 relative">
+                                <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
+                            </div>
+                            <h3 className="text-xs md:text-sm font-medium text-gray-700 mb-1 truncate w-full" title={product.name}>{product.name}</h3>
+                            <span className="text-gray-500 text-xs truncate w-full mb-1">{product.category}</span>
+                            <span className="text-green-600 font-bold text-sm">From ₹{product.price}</span>
+                        </Link>
+                    ))}
+                </div>
             </div>
         </div>
-    </div>
-);
+    );
+};
 
 const HomeScreen = () => {
     const [products, setProducts] = useState([]);
@@ -228,12 +232,18 @@ const HomeScreen = () => {
             </div>
 
             {/* Section 1: Best of Electronics */}
-            <ProductSection title="Best of Electronics" items={products} />
+            <ProductSection
+                title="Best of Electronics"
+                items={products ? products.filter(p => p.category === 'Electronics') : []}
+            />
 
 
 
             {/* Section 2: Beauty, Food, Toys & More */}
-            <ProductSection title="Beauty, Food, Toys & More" items={[...products].reverse()} />
+            <ProductSection
+                title="Beauty, Food, Toys & More"
+                items={products ? products.filter(p => ['Beauty & Personal Care', 'Grocery', 'Toys & Baby'].includes(p.category)) : []}
+            />
 
             {/* Featured Brand Full Width Banner */}
             {/* <div className="px-2 mb-4">

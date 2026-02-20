@@ -7,9 +7,12 @@ const {
     updateProduct,
     deleteProduct,
 } = require('../controllers/productController');
+const { applyMassDiscount, removeMassDiscount } = require('../controllers/discountController');
 const { protect, admin } = require('../middleware/authMiddleware');
 
 router.route('/').get(getProducts).post(protect, admin, createProduct);
+router.post('/apply-discount', protect, admin, applyMassDiscount);
+router.post('/remove-discount', protect, admin, removeMassDiscount);
 router
     .route('/:id')
     .get(getProductById)

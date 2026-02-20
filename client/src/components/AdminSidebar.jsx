@@ -11,7 +11,8 @@ import {
     X,
     MessageCircle,
     Tags,
-    Activity
+    Activity,
+    Percent
 } from 'lucide-react';
 
 const AdminSidebar = ({ isOpen, toggleSidebar }) => {
@@ -23,6 +24,7 @@ const AdminSidebar = ({ isOpen, toggleSidebar }) => {
         { path: '/admin/orderlist', name: 'Orders', icon: <ShoppingCart size={20} /> },
         { path: '/admin/userlist', name: 'Customers', icon: <Users size={20} /> },
         { path: '/admin/analytics', name: 'User Tracker', icon: <Activity size={20} /> },
+        { path: '/admin/sales', name: 'Run Sale', icon: <Percent size={20} /> },
         { path: '/admin/coupons', name: 'Coupons', icon: <Tags size={20} /> },
         { path: '/admin/chat', name: 'Support Chat', icon: <MessageCircle size={20} /> },
     ];

@@ -1,5 +1,6 @@
-import React, { Suspense, lazy } from 'react';
+import React, { Suspense, lazy, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Outlet } from 'react-router-dom';
+import axios from 'axios';
 import ScrollToTop from './components/ScrollToTop';
 import AxiosInterceptor from './components/AxiosInterceptor';
 import PublicLayout from './components/PublicLayout';
@@ -26,6 +27,7 @@ const ProductListScreen = lazy(() => import('./screens/ProductListScreen'));
 const OrderListScreen = lazy(() => import('./screens/OrderListScreen'));
 const DashboardScreen = lazy(() => import('./screens/DashboardScreen'));
 const SiteSettingsScreen = lazy(() => import('./screens/SiteSettingsScreen'));
+const DiscountManagerScreen = lazy(() => import('./screens/admin/DiscountManagerScreen'));
 const CouponListScreen = lazy(() => import('./screens/admin/CouponListScreen'));
 const AnalyticsScreen = lazy(() => import('./screens/admin/AnalyticsScreen'));
 const ChatListScreen = lazy(() => import('./screens/admin/ChatListScreen'));
@@ -36,8 +38,47 @@ const MyOrdersScreen = lazy(() => import('./screens/MyOrdersScreen'));
 const InfoScreen = lazy(() => import('./screens/InfoScreen'));
 
 function App() {
+
+  useEffect(() => {
+    // Fetch Global Site Theme on Load
+    const fetchTheme = async () => {
+      try {
+        const { data } = await axios.get('/api/content');
+        if (data.websiteTheme && data.websiteTheme !== 'default') {
+          document.body.setAttribute('data-theme', data.websiteTheme);
+        } else {
+          document.body.removeAttribute('data-theme');
+        }
+      } catch (err) {
+        console.error('Failed to load website theme', err);
+      }
+    };
+    fetchTheme();
+  }, []);
+
   return (
     <Router>
+      {/* Festive Particles Container (Controlled by CSS data-theme) */}
+      <div className="theme-particles">
+        <div className="particle p1"></div>
+        <div className="particle p2"></div>
+        <div className="particle p3"></div>
+        <div className="particle p4"></div>
+        <div className="particle p5"></div>
+        <div className="particle p6"></div>
+        <div className="particle p7"></div>
+      </div>
+
+      {/* Water Balloon Explosions */}
+      <div className="theme-balloons">
+        <div className="balloon b-logo"></div>
+        <div className="balloon b1"></div>
+        <div className="balloon b2"></div>
+        <div className="balloon b3"></div>
+        <div className="balloon b4"></div>
+        <div className="balloon b5"></div>
+      </div>
+
       <ScrollToTop />
       <AnalyticsTracker />
       <AxiosInterceptor />
@@ -75,6 +116,7 @@ function App() {
             <Route path="order/:id" element={<OrderScreen />} />
             <Route path="dashboard" element={<DashboardScreen />} />
             <Route path="analytics" element={<AnalyticsScreen />} />
+            <Route path="sales" element={<DiscountManagerScreen />} />
             <Route path="coupons" element={<CouponListScreen />} />
             <Route path="settings" element={<SiteSettingsScreen />} />
             <Route path="chat" element={<ChatListScreen />} />

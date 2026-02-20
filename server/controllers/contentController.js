@@ -14,7 +14,8 @@ const getContent = asyncHandler(async (req, res) => {
         res.json({
             heroSlides: [],
             dealOfTheDay: { title: 'Deals of the Day', bgImage: '' },
-            adBanners: []
+            adBanners: [],
+            websiteTheme: 'default',
         });
     }
 });
@@ -33,6 +34,7 @@ const updateContent = asyncHandler(async (req, res) => {
     content.heroSlides = req.body.heroSlides || content.heroSlides;
     content.dealOfTheDay = req.body.dealOfTheDay || content.dealOfTheDay;
     content.adBanners = req.body.adBanners || content.adBanners;
+    content.websiteTheme = req.body.websiteTheme || content.websiteTheme;
 
     const updatedContent = await content.save();
     res.json(updatedContent);

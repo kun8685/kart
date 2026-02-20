@@ -18,6 +18,10 @@ const contentSchema = mongoose.Schema({
             url: { type: String },
         }
     ],
+    websiteTheme: {
+        type: String,
+        default: 'default',
+    },
 }, {
     timestamps: true,
 });

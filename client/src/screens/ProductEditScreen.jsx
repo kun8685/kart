@@ -212,28 +212,63 @@ const ProductEditScreen = () => {
                         </select>
                     </div>
 
-                    <div className="flex gap-4">
-                        <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Sizes (comma separated)</label>
-                            <input
-                                type="text"
-                                placeholder="e.g. S, M, L, XL"
-                                value={sizes}
-                                onChange={(e) => setSizes(e.target.value)}
-                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
+                    {/* Smart Varients System based on Category */}
+                    {['Fashion', 'Footwear', 'Grocery', 'Accessories'].includes(category) && (
+                        <div className="bg-gray-50 p-4 border rounded-md mb-4 shadow-sm border-gray-200">
+                            <h3 className="font-bold text-gray-800 mb-3 border-b pb-2 flex items-center gap-2">
+                                ✨ Smart Variants ({category})
+                            </h3>
+                            <div className="flex flex-col md:flex-row gap-4">
+                                <div className="flex-1">
+                                    <label className="block text-gray-700 text-sm font-bold mb-2">
+                                        {category === 'Grocery' ? 'Weights / Quantities' : 'Sizes'} (comma separated)
+                                    </label>
+                                    <input
+                                        type="text"
+                                        placeholder={
+                                            category === 'Footwear' ? 'e.g. 6, 7, 8, 9, 10' :
+                                                category === 'Fashion' ? 'e.g. S, M, L, XL, XXL' :
+                                                    category === 'Grocery' ? 'e.g. 250g, 500g, 1kg' : 'e.g. OS'
+                                        }
+                                        value={sizes}
+                                        onChange={(e) => setSizes(e.target.value)}
+                                        className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                    />
+                                    <p className="text-xs text-gray-500 mt-1">Eg: separate values by comma (,)</p>
+                                </div>
+                                {category !== 'Grocery' && (
+                                    <div className="flex-1">
+                                        <label className="block text-gray-700 text-sm font-bold mb-2">Colors (comma separated)</label>
+                                        <input
+                                            type="text"
+                                            placeholder="e.g. Red, Blue, Black, White"
+                                            value={colors}
+                                            onChange={(e) => setColors(e.target.value)}
+                                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                        />
+                                        <p className="text-xs text-gray-500 mt-1">Leave empty if not applicable</p>
+                                    </div>
+                                )}
+                            </div>
                         </div>
-                        <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Colors (comma separated)</label>
-                            <input
-                                type="text"
-                                placeholder="e.g. Red, Blue, Black"
-                                value={colors}
-                                onChange={(e) => setColors(e.target.value)}
-                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
-                            />
+                    )}
+
+                    {/* Standard Color feature for other categories like Electronics */}
+                    {!['Fashion', 'Footwear', 'Grocery', 'Accessories'].includes(category) && category && (
+                        <div className="bg-gray-50 p-4 border rounded-md mb-4 shadow-sm border-gray-200">
+                            <div className="flex-1">
+                                <label className="block text-gray-700 text-sm font-bold mb-2">Available Colors (Optional, comma separated)</label>
+                                <input
+                                    type="text"
+                                    placeholder="e.g. Space Grey, Silver, Midnight"
+                                    value={colors}
+                                    onChange={(e) => setColors(e.target.value)}
+                                    className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                                />
+                                <p className="text-xs text-gray-500 mt-1">Separate available colors using comma (,)</p>
+                            </div>
                         </div>
-                    </div>
+                    )}
 
                     <div>
                         <label className="block text-gray-700 text-sm font-bold mb-2">Description</label>

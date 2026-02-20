@@ -60,6 +60,14 @@ const productSchema = mongoose.Schema({
         required: true,
         default: 0,
     },
+    sizes: {
+        type: [String],
+        default: [],
+    },
+    colors: {
+        type: [String],
+        default: [],
+    },
     // Variant support
     variants: [
         {

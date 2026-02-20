@@ -172,9 +172,16 @@ const CartScreen = () => {
                                                 {item.name}
                                             </Link>
 
-                                            <div className="text-xs text-gray-500 mb-2 mt-1">
-                                                {item.variant ? `Size: ${item.variant}` : 'Standard'}
-                                                <span className="mx-2">•</span>
+                                            <div className="text-xs text-gray-500 mb-2 mt-1 flex items-center gap-2">
+                                                {item.size || item.color ? (
+                                                    <>
+                                                        {item.size && <span className="bg-gray-100 px-2 py-0.5 rounded">Size: {item.size}</span>}
+                                                        {item.color && <span className="bg-gray-100 px-2 py-0.5 rounded flex items-center gap-1"><span className="w-2 h-2 rounded-full inline-block border border-gray-300" style={{ backgroundColor: item.color.toLowerCase() }}></span> Color: {item.color}</span>}
+                                                    </>
+                                                ) : (
+                                                    <span className="bg-gray-100 px-2 py-0.5 rounded">Standard Variant</span>
+                                                )}
+                                                <span className="mx-0.5">•</span>
                                                 Seller: RetailNet
                                             </div>
 

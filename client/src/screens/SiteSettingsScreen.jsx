@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { Save, Plus, Trash, Image as ImageIcon, Link as LinkIcon, Monitor } from 'lucide-react';
+import { Save, Plus, Trash, Image as ImageIcon, Link as LinkIcon, Monitor, Palette } from 'lucide-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
 
@@ -12,7 +12,8 @@ const SiteSettingsScreen = () => {
     const [content, setContent] = useState({
         heroSlides: [],
         dealOfTheDay: { bgImage: '', title: '' },
-        adBanners: []
+        adBanners: [],
+        websiteTheme: 'default'
     });
 
     useEffect(() => {
@@ -35,6 +36,8 @@ const SiteSettingsScreen = () => {
             newContent[section][index][field] = value;
         } else if (section === 'dealOfTheDay') {
             newContent.dealOfTheDay[field] = value;
+        } else if (section === 'root') {
+            newContent[field] = value;
         }
         setContent(newContent);
     };
@@ -165,6 +168,28 @@ const SiteSettingsScreen = () => {
                             onChange={(e) => handleChange('dealOfTheDay', null, 'title', e.target.value)}
                             className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-primary"
                         />
+                    </div>
+                </div>
+            </div>
+
+            {/* Global Theme Settings */}
+            <div className="bg-white rounded-xl shadow-sm border border-orange-200 p-6 mt-8">
+                <h2 className="text-lg font-bold text-gray-800 mb-6 border-b border-orange-100 pb-4 flex items-center gap-2">
+                    <Palette size={20} className="text-orange-500" /> Website Festive Theme
+                </h2>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <label className="block text-sm font-bold text-gray-700 mb-2">Active Theme</label>
+                        <select
+                            value={content.websiteTheme || 'default'}
+                            onChange={(e) => handleChange('root', null, 'websiteTheme', e.target.value)}
+                            className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-sm focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 font-medium"
+                        >
+                            <option value="default">Standard (Default Blue Theme)</option>
+                            <option value="holi">🎨 Holi Special (Vibrant Pink & Colors)</option>
+                            <option value="diwali" disabled>🪔 Diwali Special (Coming Soon)</option>
+                        </select>
+                        <p className="text-xs text-gray-500 mt-2">Selecting a festive theme will completely change the website's look and feel for all customers temporarily. Revert back to Standard anytime.</p>
                     </div>
                 </div>
             </div>

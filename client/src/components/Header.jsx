@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { Menu, Search, ShoppingCart, User, X, ChevronDown, Package, Heart, LogOut, LayoutGrid, Zap } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
 import { logout } from '../slices/authSlice';
@@ -10,6 +10,7 @@ const Header = () => {
     const [scrolled, setScrolled] = useState(false);
 
     const navigate = useNavigate();
+    const location = useLocation();
     const dispatch = useDispatch();
 
     const { userInfo } = useSelector((state) => state.auth);
@@ -69,10 +70,12 @@ const Header = () => {
                         </button>
 
                         <Link to="/" className="flex items-center gap-1 group">
-                            <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 tracking-tighter group-hover:opacity-90 transition">
+                            <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 tracking-tighter group-hover:opacity-90 transition inline-block">
                                 GAURY<span className="text-gray-800">KART</span>.
                             </span>
                         </Link>
+                        {/* Festive Text Only Visible When Holi Theme Active */}
+                        <span className="holi-festival-text hidden xl:inline-block">★ Holi Special ★</span>
                     </div>
 
                     {/* Search Bar - Modern & Rounded */}
@@ -170,31 +173,33 @@ const Header = () => {
                 </div>
             </header>
 
-            {/* Sub-Header Categories - Clean Minimalist */}
-            <div className="hidden md:block bg-white border-b border-gray-200/60 overflow-x-auto">
-                <div className="container mx-auto px-4">
-                    <div className="flex items-center justify-center gap-8 py-3">
-                        <div className="flex items-center gap-2 text-primary font-bold text-sm cursor-pointer hover:bg-blue-50 px-3 py-1.5 rounded-md transition">
-                            <LayoutGrid size={18} />
-                            <span>All Categories</span>
-                        </div>
-                        <div className="h-4 w-px bg-gray-300"></div>
-                        {categories.map((cat, index) => (
-                            <Link
-                                key={index}
-                                to={`/search/${cat}`}
-                                className="text-sm font-medium text-gray-600 hover:text-primary hover:font-bold transition-all whitespace-nowrap"
-                            >
-                                {cat}
+            {/* Sub-Header Categories - Clean Minimalist (Hidden on Home Page to avoid duplication) */}
+            {location.pathname !== '/' && (
+                <div className="hidden md:block bg-white border-b border-gray-200/60 overflow-x-auto">
+                    <div className="container mx-auto px-4">
+                        <div className="flex items-center justify-center gap-8 py-3">
+                            <div className="flex items-center gap-2 text-primary font-bold text-sm cursor-pointer hover:bg-blue-50 px-3 py-1.5 rounded-md transition">
+                                <LayoutGrid size={18} />
+                                <span>All Categories</span>
+                            </div>
+                            <div className="h-4 w-px bg-gray-300"></div>
+                            {categories.map((cat, index) => (
+                                <Link
+                                    key={index}
+                                    to={`/search/${cat}`}
+                                    className="text-sm font-medium text-gray-600 hover:text-primary hover:font-bold transition-all whitespace-nowrap"
+                                >
+                                    {cat}
+                                </Link>
+                            ))}
+                            <div className="h-4 w-px bg-gray-300"></div>
+                            <Link to="/search/offers" className="flex items-center gap-1 text-red-500 font-bold text-sm hover:underline">
+                                <Zap size={16} fill="currentColor" /> Offers
                             </Link>
-                        ))}
-                        <div className="h-4 w-px bg-gray-300"></div>
-                        <Link to="/search/offers" className="flex items-center gap-1 text-red-500 font-bold text-sm hover:underline">
-                            <Zap size={16} fill="currentColor" /> Offers
-                        </Link>
+                        </div>
                     </div>
                 </div>
-            </div>
+            )}
 
             {/* Mobile Menu Sidebar */}
             {isMenuOpen && (
