@@ -31,7 +31,7 @@ const InfoScreen = () => {
                     <div className="grid md:grid-cols-2 gap-6">
                         <div className="bg-white p-6 rounded shadow-sm border">
                             <h3 className="font-bold text-lg mb-2 text-gray-800">Customer Support</h3>
-                            <p>Email: support@gaurykart.com</p>
+                            <p>Email: info@gaurykart.shop</p>
                             <p>Phone: +91 1800-123-4567</p>
                             <p>Hours: Mon-Sat, 9AM - 8PM</p>
                         </div>
@@ -48,7 +48,7 @@ const InfoScreen = () => {
         'careers': {
             title: 'Careers',
             icon: Info,
-            content: <p className="text-gray-600">Join our team! We are always looking for talented individuals. Send your resume to careers@gaurykart.com.</p>
+            content: <p className="text-gray-600">Join our team! We are always looking for talented individuals. Send your resume to info@gaurykart.shop.</p>
         },
         'press': {
             title: 'Press Releases',
@@ -146,7 +146,7 @@ const InfoScreen = () => {
         'infringement': {
             title: 'Report Infringement',
             icon: AlertTriangle,
-            content: <p className="text-gray-600">If you believe any content on our site violates your intellectual property rights, please email us at legal@gaurykart.com.</p>
+            content: <p className="text-gray-600">If you believe any content on our site violates your intellectual property rights, please email us at info@gaurykart.shop.</p>
         },
         'epr': {
             title: 'EPR Compliance',

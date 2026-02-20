@@ -23,7 +23,7 @@ const server = http.createServer(app); // Create HTTP server
 // Initialize Socket.io
 const io = new Server(server, {
     cors: {
-        origin: "*", // Allow all origins for dev, restrict in prod
+        origin: process.env.CLIENT_URL || 'http://localhost:5173',
         methods: ["GET", "POST"]
     }
 });
@@ -32,22 +32,22 @@ const io = new Server(server, {
 initSocket(io);
 
 // Security Middleware
-// app.use(helmet());
+app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
 }));
-// app.use(mongoSanitize());
-// app.use(hpp());
+app.use(mongoSanitize());
+app.use(hpp());
 
 // Rate Limiting
 const limiter = rateLimit({
     windowMs: 10 * 60 * 1000, // 10 minutes
     max: 500 // limit each IP to 500 requests per windowMs
 });
-// app.use(limiter);
+app.use(limiter);
 
 // Default Route
 app.get('/', (req, res) => {

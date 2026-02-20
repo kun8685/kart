@@ -1,5 +1,6 @@
 const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
+const sendEmail = require('../utils/sendEmail');
 
 // @desc    Create new order
 // @route   POST /api/orders
@@ -35,6 +36,32 @@ const addOrderItems = asyncHandler(async (req, res) => {
         });
 
         const createdOrder = await order.save();
+
+        // Send Email Notification
+        try {
+            const emailMessage = `
+                <h2>Order Confirmation</h2>
+                <p>Hi ${req.user.name},</p>
+                <p>Thank you for your order! Your order ID is <strong>${createdOrder._id}</strong>.</p>
+                <p>We are processing it and will keep you updated.</p>
+                <h3>Order Summary:</h3>
+                <ul>
+                    ${orderItems.map(item => `<li>${item.qty} x ${item.name} - ₹${item.price}</li>`).join('')}
+                </ul>
+                <p><strong>Total Price: ₹${totalPrice}</strong></p>
+                <br>
+                <p>Best Regards,</p>
+                <p>GauryKart Team</p>
+            `;
+
+            await sendEmail({
+                email: req.user.email,
+                subject: `Order Confirmation - ${createdOrder._id}`,
+                message: emailMessage,
+            });
+        } catch (error) {
+            console.error('Email could not be sent', error);
+        }
 
         res.status(201).json(createdOrder);
     }
