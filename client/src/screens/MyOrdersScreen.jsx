@@ -12,6 +12,7 @@ const MyOrdersScreen = () => {
 
     useEffect(() => {
         if (!userInfo) {
+            setLoading(false);
             navigate('/login');
         } else {
             const fetchOrders = async () => {
@@ -93,7 +94,7 @@ const MyOrdersScreen = () => {
                                         </span>
                                     ) : (
                                         <span className="bg-blue-50 text-blue-600 px-3 py-1 rounded-full text-xs font-bold flex items-center gap-1">
-                                            <Truck size={14} /> On the way
+                                            <Truck size={14} /> {order.status || 'Processing'}
                                         </span>
                                     )}
                                 </div>

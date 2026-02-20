@@ -3,6 +3,7 @@ import { Link, useParams, useLocation } from 'react-router-dom';
 import { User, MapPin, CreditCard, ShoppingBag, CheckCircle, Clock, XCircle, ArrowLeft, Truck, PackageCheck, Receipt, Download, ShieldCheck } from 'lucide-react';
 import axios from 'axios';
 import { useSelector } from 'react-redux';
+import { motion } from 'framer-motion';
 
 
 const OrderScreen = () => {
@@ -10,6 +11,8 @@ const OrderScreen = () => {
     const location = useLocation();
     const [order, setOrder] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [trackingId, setTrackingId] = useState('');
+    const [courierName, setCourierName] = useState('');
     const { userInfo } = useSelector((state) => state.auth);
 
     useEffect(() => {
@@ -22,6 +25,8 @@ const OrderScreen = () => {
                 };
                 const { data } = await axios.get(`/api/orders/${id}`, config);
                 setOrder(data);
+                if (data.trackingId) setTrackingId(data.trackingId);
+                if (data.courierName) setCourierName(data.courierName);
                 setLoading(false);
             } catch (error) {
                 console.error(error);
@@ -172,7 +177,11 @@ const OrderScreen = () => {
                     Authorization: `Bearer ${userInfo.token}`,
                 },
             };
-            const { data } = await axios.put(`/api/orders/${order._id}/status`, { status }, config);
+            const { data } = await axios.put(`/api/orders/${order._id}/tracking`, {
+                status: status || order.status,
+                courierName: courierName || order.courierName,
+                trackingId: trackingId || order.trackingId
+            }, config);
             setOrder(data);
         } catch (error) {
             console.error(error);
@@ -225,7 +234,7 @@ const OrderScreen = () => {
                             <button
                                 key={status}
                                 onClick={() => updateStatusHandler(status)}
-                                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${order.manualStatus === status
+                                className={`px-4 py-2 rounded-lg text-sm font-bold border transition-colors ${order.status === status
                                     ? 'bg-primary text-white border-primary'
                                     : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
                                     }`}
@@ -234,7 +243,37 @@ const OrderScreen = () => {
                             </button>
                         ))}
                     </div>
-                    <p className="text-xs text-gray-400 mt-2">
+
+                    <div className="mt-6 flex flex-col md:flex-row gap-4 items-end">
+                        <div className="flex-1 w-full">
+                            <label className="block text-gray-700 text-xs font-bold mb-2 uppercase tracking-wide">Courier Name</label>
+                            <input
+                                type="text"
+                                placeholder="e.g. Delhivery, BlueDart"
+                                value={courierName}
+                                onChange={(e) => setCourierName(e.target.value)}
+                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
+                        <div className="flex-1 w-full">
+                            <label className="block text-gray-700 text-xs font-bold mb-2 uppercase tracking-wide">Tracking ID (AWB)</label>
+                            <input
+                                type="text"
+                                placeholder="Enter tracking Number"
+                                value={trackingId}
+                                onChange={(e) => setTrackingId(e.target.value)}
+                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
+                        <button
+                            onClick={() => updateStatusHandler(order.status)}
+                            className="bg-gray-800 text-white font-bold py-2 px-6 rounded shadow hover:bg-gray-700 transition"
+                        >
+                            Save Tracking
+                        </button>
+                    </div>
+
+                    <p className="text-xs text-gray-400 mt-4">
                         * Setting a status manually overrides the automatic time-based progression.
                     </p>
                 </div>
@@ -276,12 +315,31 @@ const OrderScreen = () => {
                                     </div>
                                 </div>
                             ) : (
-                                <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex items-center gap-3">
-                                    <div className="bg-blue-100 p-2 rounded-full"><Truck size={20} className="text-blue-600" /></div>
-                                    <div>
-                                        <p className="font-bold">On the way</p>
-                                        <p className="text-xs">Your order is being processed and will be shipped soon.</p>
+                                <div className="bg-blue-50 border border-blue-200 text-blue-800 p-4 rounded-xl flex flex-col gap-3">
+                                    <div className="flex items-center gap-3">
+                                        <div className="bg-blue-100 p-2 rounded-full"><Truck size={20} className="text-blue-600" /></div>
+                                        <div>
+                                            <p className="font-bold">Order Status: {order.status || 'Processing'}</p>
+                                            <p className="text-xs">Your order is being processed and will be shipped soon.</p>
+                                        </div>
                                     </div>
+
+                                    {(order.courierName || order.trackingId) && (
+                                        <div className="mt-2 border-t border-blue-200 pt-3 flex flex-wrap gap-4 text-sm bg-white/50 p-3 rounded-lg">
+                                            {order.courierName && (
+                                                <div>
+                                                    <span className="text-gray-500 text-xs font-bold uppercase block">Courier</span>
+                                                    <span className="font-medium">{order.courierName}</span>
+                                                </div>
+                                            )}
+                                            {order.trackingId && (
+                                                <div>
+                                                    <span className="text-gray-500 text-xs font-bold uppercase block">Tracking ID</span>
+                                                    <span className="font-medium tracking-wider">{order.trackingId}</span>
+                                                </div>
+                                            )}
+                                        </div>
+                                    )}
                                 </div>
                             )}
                         </div>
@@ -374,6 +432,13 @@ const OrderScreen = () => {
                                 <span className="font-medium text-gray-900">₹{order.taxPrice}</span>
                             </div>
 
+                            {order.couponCode && (
+                                <div className="flex justify-between text-green-600 font-bold bg-green-50 p-1 -mx-2 px-2 rounded mt-2">
+                                    <span>Coupon ({order.couponCode})</span>
+                                    <span>- ₹{order.couponDiscount}</span>
+                                </div>
+                            )}
+
                             <div className="border-t border-dashed border-gray-300 pt-4 mt-2">
                                 <div className="flex justify-between items-center">
                                     <span className="font-bold text-gray-900 text-lg">Total</span>
@@ -436,8 +501,8 @@ const TrackingTimeline = ({ order }) => {
 
     const currentStep = React.useMemo(() => {
         if (order.isDelivered) return 5;
-        if (order.manualStatus) {
-            switch (order.manualStatus) {
+        if (order.status) {
+            switch (order.status) {
                 case 'Processing': return 1;
                 case 'Packed': return 2;
                 case 'Shipped': return 3;
@@ -447,18 +512,16 @@ const TrackingTimeline = ({ order }) => {
             }
         }
 
-        // Automatic Time-based logic (14 days total)
+        // Automatic Time-based logic
         const created = new Date(order.createdAt).getTime();
-        // Use current time for calculation
-        // Fix for impure function: Calculate once
         const now = new Date().getTime();
         const diffDays = (now - created) / (1000 * 60 * 60 * 24);
 
-        if (diffDays < 1) return 1; // Processing
-        if (diffDays < 3) return 2; // Packed
-        if (diffDays < 12) return 3; // Shipped
-        if (diffDays < 14) return 4; // Out for Delivery
-        return 5; // Delivered (Auto)
+        if (diffDays < 1) return 1;
+        if (diffDays < 3) return 2;
+        if (diffDays < 12) return 3;
+        if (diffDays < 14) return 4;
+        return 5;
     }, [order]);
 
     const steps = [

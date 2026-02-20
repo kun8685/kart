@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
-import { ChevronLeft, ChevronRight, Star, Heart, Clock, Gift, Tag } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Star, Heart, Clock, Gift, Tag, X, Mail, Check } from 'lucide-react';
+import { HomeSkeleton } from '../components/ProductSkeleton';
 
 const ProductSection = ({ title, items, bg = "bg-white" }) => (
     <div className={`container mx-auto px-2 md:px-3 mb-4`}>
@@ -33,13 +34,14 @@ const HomeScreen = () => {
     const [error, setError] = useState(null);
     const [currentSlide, setCurrentSlide] = useState(0);
     const [content, setContent] = useState(null);
+    const [showPopup, setShowPopup] = useState(false);
 
     // Fallback data
     const defaultSlides = [
-        { id: 1, image: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/1e11770239025000.jpg?q=20', title: 'Big Sale' },
-        { id: 2, image: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/17a2dc7ae0551074.jpg?q=20', title: 'Mobiles' },
-        { id: 3, image: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/a2dace7df84d436a.jpg?q=20', title: 'Fashion' },
-        { id: 4, image: 'https://rukminim1.flixcart.com/fk-p-flap/1600/270/image/57530590a02047a0.jpg?q=20', title: 'Home' }
+        { id: 1, image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?w=1600&h=270&fit=crop', title: 'Big Sale' },
+        { id: 2, image: 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1600&h=270&fit=crop', title: 'Electronics' },
+        { id: 3, image: 'https://images.unsplash.com/photo-1483985988355-763728e1935b?w=1600&h=270&fit=crop', title: 'Fashion' },
+        { id: 4, image: 'https://images.unsplash.com/photo-1555529669-e69e7aa0ba9a?w=1600&h=270&fit=crop', title: 'Home' }
     ];
 
     const activeSlides = content?.heroSlides?.length > 0 ? content.heroSlides : defaultSlides;
@@ -87,16 +89,60 @@ const HomeScreen = () => {
         const interval = setInterval(() => {
             setCurrentSlide((prev) => (prev === activeSlides.length - 1 ? 0 : prev + 1));
         }, 3000);
-        return () => clearInterval(interval);
+
+        // Show popup after 5 seconds
+        const popupTimer = setTimeout(() => {
+            const hasSeenPopup = sessionStorage.getItem('hasSeenPopup');
+            if (!hasSeenPopup) {
+                setShowPopup(true);
+            }
+        }, 5000);
+
+        return () => {
+            clearInterval(interval);
+            clearTimeout(popupTimer);
+        };
     }, [activeSlides.length]);
 
-    if (loading) return <div className="flex justify-center items-center h-screen"><div className="animate-spin rounded-full h-16 w-16 border-t-2 border-b-2 border-primary"></div></div>;
+    const closePopup = () => {
+        setShowPopup(false);
+        sessionStorage.setItem('hasSeenPopup', 'true');
+    };
+
+    if (loading) return <HomeSkeleton />;
     if (error) return <div className="text-center py-20 text-red-500">{error}</div>;
 
-
+    const testimonials = [
+        { name: "Rahul S.", text: "Amazing quality and fast delivery! Will definitely buy again.", rating: 5 },
+        { name: "Priya V.", text: "The deals are unbeatable. Ordered a phone and got it the next day.", rating: 5 },
+        { name: "Amit K.", text: "Customer service is top notch. They helped me with a return within minutes.", rating: 4 },
+    ];
 
     return (
-        <div className="bg-[#f1f2f4] min-h-screen pb-8">
+        <div className="bg-[#f1f2f4] min-h-screen pb-8 relative">
+            {/* Email Subscription Pop-up */}
+            {showPopup && (
+                <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
+                    <div className="bg-white rounded-lg shadow-2xl w-full max-w-lg relative overflow-hidden flex flex-col md:flex-row">
+                        <button onClick={closePopup} className="absolute top-2 right-2 text-gray-500 hover:text-red-500 z-10 bg-white rounded-full p-1"><X size={20} /></button>
+                        <div className="md:w-2/5 bg-gradient-to-br from-primary to-blue-600 p-6 flex flex-col items-center justify-center text-white text-center">
+                            <Gift size={48} className="mb-4 text-yellow-300 animate-bounce" />
+                            <h3 className="text-2xl font-black mb-1">WAIT!</h3>
+                            <p className="text-sm font-medium">Don't leave empty-handed</p>
+                        </div>
+                        <div className="md:w-3/5 p-8 text-center bg-white flex flex-col justify-center">
+                            <h3 className="text-xl font-bold text-gray-800 mb-2">Get 10% Extra Off!</h3>
+                            <p className="text-sm text-gray-500 mb-6">Enter your email below to unlock your exclusive first-time buyer discount.</p>
+                            <div className="relative mb-4">
+                                <Mail size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+                                <input type="email" placeholder="Email Address" className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded focus:border-primary focus:ring-1 focus:ring-primary outline-none text-sm" />
+                            </div>
+                            <button onClick={closePopup} className="w-full bg-[#fb641b] hover:bg-[#e85d19] text-white font-bold py-2.5 rounded shadow transition uppercase tracking-wide text-sm mb-3">Claim My 10% Off</button>
+                            <button onClick={closePopup} className="text-xs text-gray-400 hover:text-gray-600 underline">No thanks, I prefer paying full price</button>
+                        </div>
+                    </div>
+                </div>
+            )}
             {/* Categories Section */}
             <div className="bg-white shadow-sm mb-3 overflow-x-auto no-scrollbar">
                 <div className="container mx-auto px-4 py-3">
@@ -143,7 +189,7 @@ const HomeScreen = () => {
 
             {/* Special "Deals of the Day" Section with Background */}
             <div className="container mx-auto px-2 md:px-3 mb-4">
-                <div className="flex bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden h-full md:h-[300px]">
+                <div className="flex relative bg-white shadow-sm border border-gray-200 rounded-sm overflow-hidden h-full md:h-[300px]">
                     {/* Left Banner Info */}
                     <div className="hidden md:flex flex-col justify-center items-center w-1/5 bg-[url('https://rukminim1.flixcart.com/fk-p-flap/278/278/image/7593e7b664cdff75.jpg?q=90')] bg-cover bg-bottom text-white p-4 text-center relative">
                         <div className="absolute inset-0 bg-black/10"></div>
@@ -169,7 +215,11 @@ const HomeScreen = () => {
                                     <img src={product.image} alt={product.name} className="w-full h-full object-contain group-hover:scale-105 transition duration-300" />
                                 </div>
                                 <span className="text-xs md:text-sm font-medium text-gray-700 text-center line-clamp-2 md:line-clamp-1">{product.name}</span>
-                                <span className="text-green-600 font-bold text-sm">20-50% Off</span>
+                                <span className="text-green-600 font-bold text-sm">
+                                    {(product.originalPrice && product.originalPrice > product.price)
+                                        ? `${Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% Off`
+                                        : `20-50% Off`}
+                                </span>
                                 <span className="text-gray-500 text-xs">{product.category}</span>
                             </Link>
                         ))}
@@ -228,10 +278,40 @@ const HomeScreen = () => {
 
                                     <div className="flex items-center gap-2 mt-1">
                                         <span className="text-base font-bold">₹{product?.price}</span>
-                                        <span className="text-gray-400 text-xs line-through">₹{Math.round(product?.price * 1.2)}</span>
-                                        <span className="text-green-700 text-[10px] font-bold">20% off</span>
+                                        {(product?.originalPrice && product.originalPrice > product.price) ? (
+                                            <>
+                                                <span className="text-gray-400 text-xs line-through">₹{product.originalPrice}</span>
+                                                <span className="text-green-700 text-[10px] font-bold">{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% off</span>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <span className="text-gray-400 text-xs line-through">₹{Math.round(product?.price * 1.2)}</span>
+                                                <span className="text-green-700 text-[10px] font-bold">20% off</span>
+                                            </>
+                                        )}
                                     </div>
                                     <span className="text-[10px] text-gray-500 font-medium hidden group-hover:block transition">Free delivery</span>
+                                </div>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+            </div>
+
+            {/* Testimonials / Social Proof Section */}
+            <div className="container mx-auto px-2 md:px-3 mt-8">
+                <div className="bg-white p-6 rounded-sm shadow-sm border border-gray-200">
+                    <h2 className="text-xl font-bold text-center text-gray-800 mb-6">What Our Customers Say</h2>
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        {testimonials.map((t, idx) => (
+                            <div key={idx} className="bg-gray-50 p-5 rounded-md border border-gray-100 flex flex-col items-center text-center">
+                                <div className="flex gap-1 text-yellow-400 mb-3">
+                                    {[...Array(t.rating)].map((_, i) => <Star key={i} size={16} fill="currentColor" />)}
+                                </div>
+                                <p className="text-sm text-gray-600 italic mb-4">"{t.text}"</p>
+                                <span className="font-bold text-gray-800 text-sm">- {t.name}</span>
+                                <div className="flex items-center gap-1 mt-1 text-green-600 text-[10px] font-bold">
+                                    <Check size={12} /> Verified Buyer
                                 </div>
                             </div>
                         ))}

@@ -3,14 +3,17 @@ const asyncHandler = require('express-async-handler');
 const User = require('../models/User');
 
 const protect = asyncHandler(async (req, res, next) => {
-    let token;
+    let token = req.cookies.jwt;
 
-    if (
-        req.headers.authorization &&
-        req.headers.authorization.startsWith('Bearer')
-    ) {
+    if (!token && req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
+        token = req.headers.authorization.split(' ')[1];
+        if (token === 'undefined') {
+            token = null;
+        }
+    }
+
+    if (token) {
         try {
-            token = req.headers.authorization.split(' ')[1];
             if (!process.env.JWT_SECRET) {
                 throw new Error('JWT_SECRET not defined in environment');
             }

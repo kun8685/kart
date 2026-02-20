@@ -47,6 +47,15 @@ export const register = createAsyncThunk(
     }
 );
 
+// Async thunk for logout
+export const logout = createAsyncThunk(
+    'auth/logout',
+    async () => {
+        await axios.post('/api/auth/logout');
+        localStorage.removeItem('userInfo');
+    }
+);
+
 const initialState = {
     userInfo: localStorage.getItem('userInfo')
         ? JSON.parse(localStorage.getItem('userInfo'))
@@ -58,12 +67,7 @@ const initialState = {
 const authSlice = createSlice({
     name: 'auth',
     initialState,
-    reducers: {
-        logout: (state) => {
-            localStorage.removeItem('userInfo');
-            state.userInfo = null;
-        },
-    },
+    reducers: {},
     extraReducers: (builder) => {
         builder
             .addCase(login.pending, (state) => {
@@ -89,9 +93,11 @@ const authSlice = createSlice({
             .addCase(register.rejected, (state, action) => {
                 state.loading = false;
                 state.error = action.payload;
+            })
+            .addCase(logout.fulfilled, (state) => {
+                state.userInfo = null;
             });
     },
 });
 
-export const { logout } = authSlice.actions;
 export default authSlice.reducer;

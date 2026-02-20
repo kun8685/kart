@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import { clearCart, savePaymentMethod } from '../slices/cartSlice';
 import axios from 'axios';
 import { MapPin, CreditCard, ShoppingBag, ShieldCheck, Clock, CheckCircle, Flame, BatteryWarning, Zap } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 
 const PlaceOrderScreen = () => {
@@ -43,7 +44,10 @@ const PlaceOrderScreen = () => {
     // Calculate Prices
     const addDecimals = (num) => (Math.round(num * 100) / 100).toFixed(2);
     const itemsPriceNumber = cart.cartItems.reduce((acc, item) => acc + item.price * item.qty, 0);
-    const itemsPrice = addDecimals(itemsPriceNumber);
+    const totalOriginalPriceNumber = cart.cartItems.reduce((acc, item) => acc + Number(item.qty) * ((item.originalPrice && item.originalPrice > item.price) ? item.originalPrice : Math.round(item.price * 1.1)), 0);
+
+    // itemsPrice display is the MRP total
+    const itemsPrice = addDecimals(totalOriginalPriceNumber);
 
     const initialPaymentMethod = (cart.paymentMethod === 'Razorpay' ? 'Online' : cart.paymentMethod) || 'Online';
     const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(initialPaymentMethod);
@@ -53,19 +57,37 @@ const PlaceOrderScreen = () => {
     }, [selectedPaymentMethod, dispatch]);
 
     // Shipping Logic
+    const isCodDisabled = itemsPriceNumber >= 1200;
+
+    // Force Online if COD is disabled but somehow selected
+    useEffect(() => {
+        if (isCodDisabled && selectedPaymentMethod === 'COD') {
+            setSelectedPaymentMethod('Online');
+        }
+    }, [isCodDisabled, selectedPaymentMethod]);
+
     let shippingCost = 0;
     const isOnlinePayment = selectedPaymentMethod === 'Online' || selectedPaymentMethod === 'Razorpay';
+
+    // Always free for online to encourage it. Always charge for COD for safety.
     if (isOnlinePayment) {
         shippingCost = 0;
     } else {
-        if (itemsPriceNumber <= 599) shippingCost = 49;
-        else if (itemsPriceNumber <= 999) shippingCost = 69;
-        else shippingCost = 99;
+        shippingCost = 69; // Advance delivery charge
     }
 
     const shippingPrice = addDecimals(shippingCost);
-    const taxPrice = addDecimals(Number((0.18 * itemsPrice).toFixed(2)));
-    const totalPrice = (Number(itemsPrice) + Number(shippingPrice) + Number(taxPrice)).toFixed(2);
+
+    // Extra Discount based on true MRP vs Selling Price
+    const discountNumber = totalOriginalPriceNumber - itemsPriceNumber;
+    let discountPrice = discountNumber;
+
+    // Apply Coupon
+    const couponDiscount = cart.appliedCoupon ? cart.appliedCoupon.discountAmount : 0;
+    discountPrice += couponDiscount;
+
+    const taxPrice = "0.00"; // Removed 18% extra tax visually
+    const totalPrice = (Number(itemsPrice) - Number(discountPrice) + Number(shippingPrice)).toFixed(2);
 
     useEffect(() => {
         if (!cart.shippingAddress.address) {
@@ -102,10 +124,22 @@ const PlaceOrderScreen = () => {
                 shippingPrice: shippingPrice,
                 taxPrice: taxPrice,
                 totalPrice: totalPrice,
+                couponCode: cart.appliedCoupon ? cart.appliedCoupon.code : null,
+                couponDiscount: couponDiscount,
             };
 
             const { data: createdOrder } = await axios.post('/api/orders', orderData, config);
             const orderId = createdOrder._id;
+
+            // Calculate Amount to Pay for Razorpay
+            const amountToPay = isOnlinePayment ? totalPrice : shippingPrice;
+
+            // If COD and no shipping fee, bypass Razorpay completely
+            if (!isOnlinePayment && Number(amountToPay) === 0) {
+                dispatch(clearCart());
+                navigate(`/order/${orderId}`);
+                return;
+            }
 
             // 2. Initiate Payment IMMEDIATEY (Don't navigate away)
             const res = await loadRazorpay();
@@ -116,11 +150,6 @@ const PlaceOrderScreen = () => {
 
             // Get Key
             const { data: { key } } = await axios.get('/api/payment/razorpay/key', config);
-
-            // Calculate Amount to Pay
-            // If Online: Pay Total
-            // If COD: Pay Shipping Only
-            const amountToPay = isOnlinePayment ? totalPrice : shippingPrice;
 
             // Create Razorpay Order
             const { data: razorpayOrder } = await axios.post('/api/payment/razorpay', {
@@ -263,23 +292,27 @@ const PlaceOrderScreen = () => {
                                                 Pay Online (UPI / Card / NetBanking)
                                                 <Zap size={14} className="fill-yellow-400 text-yellow-400" />
                                             </p>
-                                            <p className="text-xs text-green-600 font-medium">Extra Rewards + Instant Refund</p>
+                                            <p className="text-[11px] sm:text-xs text-green-700 font-bold bg-green-100 inline-block px-2 py-0.5 rounded mt-1 shadow-sm border border-green-200">
+                                                ✅ Zero Delivery Fee + Secured by Razorpay
+                                            </p>
                                         </div>
                                     </div>
                                 </div>
 
                                 <div
-                                    onClick={() => setSelectedPaymentMethod('COD')}
-                                    className={`relative border rounded-xl p-4 cursor-pointer transition-all ${selectedPaymentMethod === 'COD' ? 'border-gray-600 bg-gray-50 ring-1 ring-gray-600' : 'border-gray-200 hover:border-gray-300'}`}
+                                    onClick={() => !isCodDisabled && setSelectedPaymentMethod('COD')}
+                                    className={`relative border rounded-xl p-4 transition-all ${isCodDisabled ? 'opacity-50 cursor-not-allowed bg-gray-50' : 'cursor-pointer hover:border-gray-300'} ${selectedPaymentMethod === 'COD' ? 'border-gray-600 bg-gray-50 ring-1 ring-gray-600' : 'border-gray-200'}`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPaymentMethod === 'COD' ? 'border-gray-600' : 'border-gray-300'}`}>
                                             {selectedPaymentMethod === 'COD' && <div className="w-2.5 h-2.5 bg-gray-600 rounded-full" />}
                                         </div>
                                         <div className="flex-1">
-                                            <p className="font-bold text-gray-700">Cash on Delivery</p>
-                                            <p className="text-xs text-red-500 font-medium">
-                                                + ₹{itemsPriceNumber <= 599 ? 49 : itemsPriceNumber <= 999 ? 69 : 99} Delivery Charges Apply
+                                            <p className="font-bold text-gray-700">Pay on Delivery</p>
+                                            <p className={`text-xs font-medium mt-1 ${isCodDisabled ? 'text-red-500' : 'text-gray-500'}`}>
+                                                {isCodDisabled
+                                                    ? '❌ Not available for orders above ₹1200'
+                                                    : '⚠️ To prevent fake orders, pay ₹69 delivery charge now. Pay rest on delivery.'}
                                             </p>
                                         </div>
                                     </div>
@@ -316,34 +349,46 @@ const PlaceOrderScreen = () => {
                                     <span>Item Total</span>
                                     <span>₹{itemsPrice}</span>
                                 </div>
+                                <div className="flex justify-between text-green-600 font-medium">
+                                    <span>Discount</span>
+                                    <span>- ₹{addDecimals(discountPrice)}</span>
+                                </div>
+                                {cart.appliedCoupon && (
+                                    <div className="flex justify-between text-green-600 font-bold bg-green-50 p-1 -mx-2 px-2 rounded">
+                                        <span>Coupon ({cart.appliedCoupon.code})</span>
+                                        <span>- ₹{addDecimals(couponDiscount)}</span>
+                                    </div>
+                                )}
                                 <div className="flex justify-between items-center">
                                     <span>Delivery Fee</span>
                                     <span className={Number(shippingPrice) === 0 ? "text-green-600 font-bold" : "text-gray-900"}>
                                         {Number(shippingPrice) === 0 ? "FREE" : `₹${shippingPrice}`}
                                     </span>
                                 </div>
-                                <div className="flex justify-between">
-                                    <span>Taxes</span>
-                                    <span>₹{taxPrice}</span>
+                                <div className="flex justify-between opacity-50">
+                                    <span>GST / Taxes</span>
+                                    <span className="text-green-600">Included</span>
                                 </div>
                             </div>
 
                             <div className="border-t border-dashed border-gray-300 pt-3 mb-4">
                                 <div className="flex justify-between items-center text-xl font-bold text-gray-900">
-                                    <span>To Pay</span>
-                                    <span>₹{totalPrice}</span>
+                                    <span>{isOnlinePayment ? 'Total Amount' : 'To Pay Now'}</span>
+                                    <span>₹{isOnlinePayment ? totalPrice : shippingPrice}</span>
                                 </div>
-                                <p className="text-[10px] text-right text-gray-400 mt-1">Inclusive of all taxes</p>
+                                <p className="text-[10px] text-right text-gray-400 mt-1">
+                                    {isOnlinePayment ? 'Inclusive of all taxes' : `Pay ₹${(totalPrice - shippingPrice).toFixed(2)} in cash on delivery`}
+                                </p>
                             </div>
 
                             <motion.button
                                 whileHover={{ scale: 1.02 }}
                                 whileTap={{ scale: 0.95 }}
                                 type="button"
-                                className="w-full bg-gradient-to-r from-yellow-400 to-orange-500 hover:from-yellow-500 hover:to-orange-600 text-white text-lg font-extrabold py-4 rounded-xl shadow-xl shadow-orange-500/20 transition-all uppercase tracking-wider mb-3 animate-pulse-slow"
+                                className={`w-full text-white text-lg font-extrabold py-4 rounded-xl shadow-xl transition-all uppercase tracking-wider mb-3 ${isOnlinePayment ? 'bg-gradient-to-r from-green-500 to-emerald-600 shadow-green-500/20 animate-pulse-slow' : 'bg-gray-800 shadow-gray-800/20'}`}
                                 onClick={handlePaymentAndOrder}
                             >
-                                CONFIRM & PAY
+                                {isOnlinePayment ? "CONFIRM & PAY" : `PAY ₹${shippingPrice} TO CONFIRM`}
                             </motion.button>
 
                             <div className="bg-gray-50 p-2 rounded text-[10px] text-gray-500 text-center flex justify-center gap-4">

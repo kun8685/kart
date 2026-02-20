@@ -8,6 +8,9 @@ const initialState = {
         ? JSON.parse(localStorage.getItem('shippingAddress'))
         : {},
     paymentMethod: 'Razorpay',
+    appliedCoupon: localStorage.getItem('appliedCoupon')
+        ? JSON.parse(localStorage.getItem('appliedCoupon'))
+        : null,
 };
 
 const cartSlice = createSlice({
@@ -41,8 +44,18 @@ const cartSlice = createSlice({
         },
         clearCart: (state) => {
             state.cartItems = [];
+            state.appliedCoupon = null;
             localStorage.removeItem('cartItems');
+            localStorage.removeItem('appliedCoupon');
         },
+        applyCouponState: (state, action) => {
+            state.appliedCoupon = action.payload;
+            localStorage.setItem('appliedCoupon', JSON.stringify(action.payload));
+        },
+        removeCouponState: (state) => {
+            state.appliedCoupon = null;
+            localStorage.removeItem('appliedCoupon');
+        }
     },
 });
 
@@ -52,6 +65,8 @@ export const {
     saveShippingAddress,
     savePaymentMethod,
     clearCart,
+    applyCouponState,
+    removeCouponState,
 } = cartSlice.actions;
 
 export default cartSlice.reducer;

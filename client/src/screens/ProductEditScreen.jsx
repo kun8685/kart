@@ -11,7 +11,9 @@ const ProductEditScreen = () => {
 
     const [name, setName] = useState('');
     const [price, setPrice] = useState(0);
+    const [originalPrice, setOriginalPrice] = useState(0);
     const [image, setImage] = useState('');
+    const [images, setImages] = useState('');
     const [brand, setBrand] = useState('');
     const [category, setCategory] = useState('');
     const [countInStock, setCountInStock] = useState(0);
@@ -33,7 +35,9 @@ const ProductEditScreen = () => {
                 const { data } = await axios.get(`/api/products/${id}`);
                 setName(data.name);
                 setPrice(data.price);
+                setOriginalPrice(data.originalPrice || 0);
                 setImage(data.image);
+                setImages(data.images ? data.images.join(', ') : '');
                 setBrand(data.brand);
                 setCategory(data.category);
                 setCountInStock(data.countInStock);
@@ -66,7 +70,9 @@ const ProductEditScreen = () => {
                 {
                     name,
                     price,
+                    originalPrice,
                     image,
+                    images: images ? images.split(',').map(s => s.trim()).filter(s => s) : [],
                     brand,
                     category,
                     countInStock,
@@ -110,10 +116,20 @@ const ProductEditScreen = () => {
 
                     <div className="flex gap-4">
                         <div className="flex-1">
-                            <label className="block text-gray-700 text-sm font-bold mb-2">Price</label>
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Original Price (MRP)</label>
                             <input
                                 type="number"
-                                placeholder="Enter price"
+                                placeholder="Enter original price"
+                                value={originalPrice}
+                                onChange={(e) => setOriginalPrice(e.target.value)}
+                                className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
+                            />
+                        </div>
+                        <div className="flex-1">
+                            <label className="block text-gray-700 text-sm font-bold mb-2">Selling Price</label>
+                            <input
+                                type="number"
+                                placeholder="Enter selling price"
                                 value={price}
                                 onChange={(e) => setPrice(e.target.value)}
                                 className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary"
@@ -132,14 +148,25 @@ const ProductEditScreen = () => {
                     </div>
 
                     <div>
-                        <label className="block text-gray-700 text-sm font-bold mb-2">Image URL</label>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Main Image URL</label>
                         <input
                             type="text"
-                            placeholder="Enter image url"
+                            placeholder="Enter main image url"
                             value={image}
                             onChange={(e) => setImage(e.target.value)}
                             className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary mb-2"
                         />
+                    </div>
+
+                    <div>
+                        <label className="block text-gray-700 text-sm font-bold mb-2">Additional Image URLs (Comma Separated)</label>
+                        <textarea
+                            placeholder="https://image1.jpg, https://image2.jpg"
+                            value={images}
+                            onChange={(e) => setImages(e.target.value)}
+                            rows="2"
+                            className="w-full px-3 py-2 border rounded shadow-sm focus:outline-none focus:ring-1 focus:ring-primary mb-2"
+                        ></textarea>
                     </div>
 
                     <div>

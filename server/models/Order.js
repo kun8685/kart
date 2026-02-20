@@ -69,6 +69,28 @@ const orderSchema = mongoose.Schema({
     deliveredAt: {
         type: Date,
     },
+    // Tracking Details
+    status: {
+        type: String,
+        required: true,
+        default: 'Processing', // 'Processing', 'Shipped', 'Out for Delivery', 'Delivered', 'Cancelled'
+    },
+    courierName: {
+        type: String,
+        default: '',
+    },
+    trackingId: {
+        type: String,
+        default: '',
+    },
+    couponCode: {
+        type: String,
+        default: null,
+    },
+    couponDiscount: {
+        type: Number,
+        default: 0,
+    },
 }, {
     timestamps: true,
 });

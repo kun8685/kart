@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { saveShippingAddress, savePaymentMethod } from '../slices/cartSlice';
 import { MapPin, Building, Globe, Home, ChevronRight, Truck, Info, Package } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 
 const ShippingScreen = () => {

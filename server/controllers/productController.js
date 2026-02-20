@@ -46,8 +46,10 @@ const createProduct = asyncHandler(async (req, res) => {
     const product = new Product({
         name: 'Sample name',
         price: 0,
+        originalPrice: 0,
         user: req.user._id,
         image: '/images/sample.jpg',
+        images: [],
         brand: 'Sample brand',
         category: 'Sample category',
         countInStock: 0,
@@ -67,8 +69,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     const {
         name,
         price,
+        originalPrice,
         description,
         image,
+        images,
         brand,
         category,
         countInStock,
@@ -80,8 +84,10 @@ const updateProduct = asyncHandler(async (req, res) => {
     if (product) {
         product.name = name;
         product.price = price;
+        product.originalPrice = originalPrice;
         product.description = description;
         product.image = image;
+        product.images = images || product.images;
         product.brand = brand;
         product.category = category;
         product.countInStock = countInStock;
@@ -95,9 +101,22 @@ const updateProduct = asyncHandler(async (req, res) => {
     }
 });
 
+const deleteProduct = asyncHandler(async (req, res) => {
+    const product = await Product.findById(req.params.id);
+
+    if (product) {
+        await product.deleteOne(); // Use deleteOne() instead of remove() for modern Mongoose
+        res.json({ message: 'Product removed' });
+    } else {
+        res.status(404);
+        throw new Error('Product not found');
+    }
+});
+
 module.exports = {
     getProducts,
     getProductById,
+    deleteProduct,
     createProduct,
     updateProduct,
 };

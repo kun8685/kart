@@ -84,7 +84,7 @@ const ProductListScreen = () => {
                         <tr>
                             <th className="p-4 border-b">ID</th>
                             <th className="p-4 border-b">Name</th>
-                            <th className="p-4 border-b">Price</th>
+                            <th className="p-4 border-b">Price (Sell / MRP)</th>
                             <th className="p-4 border-b">Category</th>
                             <th className="p-4 border-b">Brand</th>
                             <th className="p-4 border-b">Stock</th>
@@ -96,7 +96,12 @@ const ProductListScreen = () => {
                             <tr key={product._id} className="hover:bg-gray-50">
                                 <td className="p-4 text-sm text-gray-500">{product._id}</td>
                                 <td className="p-4 font-medium text-gray-800">{product.name}</td>
-                                <td className="p-4 text-gray-700">₹{product.price}</td>
+                                <td className="p-4 text-gray-700">
+                                    <div className="font-bold">₹{product.price}</div>
+                                    {product.originalPrice && product.originalPrice > product.price && (
+                                        <div className="text-xs text-gray-400 line-through">₹{product.originalPrice}</div>
+                                    )}
+                                </td>
                                 <td className="p-4 text-gray-600">{product.category}</td>
                                 <td className="p-4 text-gray-600">{product.brand}</td>
                                 <td className="p-4">

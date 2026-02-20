@@ -51,7 +51,7 @@ const OrderListScreen = () => {
                             <th className="p-4 border-b">Date</th>
                             <th className="p-4 border-b">Total</th>
                             <th className="p-4 border-b">Paid</th>
-                            <th className="p-4 border-b">Delivered</th>
+                            <th className="p-4 border-b">Status</th>
                             <th className="p-4 border-b">Actions</th>
                         </tr>
                     </thead>
@@ -73,11 +73,19 @@ const OrderListScreen = () => {
                                 </td>
                                 <td className="p-4">
                                     {order.isDelivered ? (
-                                        <span className="text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded text-xs">
-                                            {order.deliveredAt.substring(0, 10)}
+                                        <span className="text-green-600 font-semibold bg-green-100 px-2 py-0.5 rounded text-xs flex items-center gap-1 w-fit">
+                                            <Check size={14} /> Delivered
                                         </span>
                                     ) : (
-                                        <span className="text-red-600 font-semibold bg-red-100 px-2 py-0.5 rounded text-xs"><X size={16} /></span>
+                                        <span className={`font-semibold px-2 py-0.5 rounded text-xs w-fit
+                                            ${order.status === 'Processing' ? 'text-blue-600 bg-blue-100' : ''}
+                                            ${order.status === 'Packed' ? 'text-yellow-600 bg-yellow-100' : ''}
+                                            ${order.status === 'Shipped' ? 'text-purple-600 bg-purple-100' : ''}
+                                            ${order.status === 'Out for Delivery' ? 'text-orange-600 bg-orange-100' : ''}
+                                            ${!order.status ? 'text-blue-600 bg-blue-100' : ''}
+                                        `}>
+                                            {order.status || 'Processing'}
+                                        </span>
                                     )}
                                 </td>
                                 <td className="p-4">

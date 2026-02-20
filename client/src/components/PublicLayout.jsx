@@ -23,7 +23,8 @@ const PublicLayout = () => {
 
 
             <Footer />
-            <MobileNav />
+            {/* Hide Mobile Navigation on Product Pages to show Sticky Buy Buttons */}
+            {!isProductPage && <MobileNav />}
         </div>
     );
 };

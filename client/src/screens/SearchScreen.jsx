@@ -75,9 +75,17 @@ const SearchScreen = () => {
 
                                         <div className="flex items-center gap-2 mt-1">
                                             <span className="text-base font-bold">₹{product.price}</span>
-                                            {/* Mock original price for discount display */}
-                                            <span className="text-gray-400 text-xs line-through">₹{Math.round(product.price * 1.2)}</span>
-                                            <span className="text-green-700 text-[10px] font-bold">20% off</span>
+                                            {(product.originalPrice && product.originalPrice > product.price) ? (
+                                                <>
+                                                    <span className="text-gray-400 text-xs line-through">₹{product.originalPrice}</span>
+                                                    <span className="text-green-700 text-[10px] font-bold">{Math.round(((product.originalPrice - product.price) / product.originalPrice) * 100)}% off</span>
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <span className="text-gray-400 text-xs line-through">₹{Math.round(product.price * 1.2)}</span>
+                                                    <span className="text-green-700 text-[10px] font-bold">20% off</span>
+                                                </>
+                                            )}
                                         </div>
                                         <span className="text-[10px] text-gray-500 font-medium hidden group-hover:block transition mt-1">Free delivery</span>
                                     </div>

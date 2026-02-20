@@ -14,6 +14,10 @@ const productSchema = mongoose.Schema({
         type: String,
         required: true,
     },
+    images: {
+        type: [String],
+        default: [],
+    },
     brand: {
         type: String,
         required: true,
@@ -39,6 +43,11 @@ const productSchema = mongoose.Schema({
     price: {
         type: Number,
         required: true,
+        default: 0,
+    },
+    originalPrice: {
+        type: Number,
+        required: false,
         default: 0,
     },
     countInStock: {

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import { savePaymentMethod } from '../slices/cartSlice';
 import { CreditCard, Wallet, Truck, ShieldCheck, Zap, ArrowRight, Banknote } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 
 const PaymentScreen = () => {

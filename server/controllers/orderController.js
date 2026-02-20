@@ -13,6 +13,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
         taxPrice,
         shippingPrice,
         totalPrice,
+        couponCode,
+        couponDiscount,
     } = req.body;
 
     if (!orderItems || orderItems.length === 0) {
@@ -28,6 +30,8 @@ const addOrderItems = asyncHandler(async (req, res) => {
             taxPrice,
             shippingPrice,
             totalPrice,
+            couponCode,
+            couponDiscount,
         });
 
         const createdOrder = await order.save();
@@ -125,11 +129,36 @@ const getOrders = asyncHandler(async (req, res) => {
     res.json(orders);
 });
 
+// @desc    Update order tracking status
+// @route   PUT /api/orders/:id/tracking
+// @access  Private/Admin
+const updateTrackingStatus = asyncHandler(async (req, res) => {
+    const order = await Order.findById(req.params.id);
+
+    if (order) {
+        order.status = req.body.status || order.status;
+        order.courierName = req.body.courierName || order.courierName;
+        order.trackingId = req.body.trackingId || order.trackingId;
+
+        if (req.body.status === 'Delivered') {
+            order.isDelivered = true;
+            order.deliveredAt = Date.now();
+        }
+
+        const updatedOrder = await order.save();
+        res.json(updatedOrder);
+    } else {
+        res.status(404);
+        throw new Error('Order not found');
+    }
+});
+
 module.exports = {
     addOrderItems,
     getOrderById,
     updateOrderToPaid,
     updateOrderToDelivered,
+    updateTrackingStatus,
     getMyOrders,
     getOrders,
 };

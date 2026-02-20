@@ -34,8 +34,16 @@ const createRazorpayOrder = asyncHandler(async (req, res) => {
         throw new Error('Order is already paid');
     }
 
+    // Calculate amount based on payment method
+    let amountToPay = order.totalPrice;
+
+    // If COD, only pay shipping price as a deposit
+    if (order.paymentMethod === 'COD') {
+        amountToPay = order.shippingPrice;
+    }
+
     const options = {
-        amount: Math.round(order.totalPrice * 100), // Amount in paise
+        amount: Math.round(amountToPay * 100), // Amount in paise
         currency: 'INR',
         receipt: order._id.toString(),
     };

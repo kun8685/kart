@@ -6,6 +6,7 @@ const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const hpp = require('hpp');
 const connectDB = require('./config/db');
+const cookieParser = require('cookie-parser');
 const http = require('http'); // Import http
 const { Server } = require('socket.io'); // Import socket.io
 const initSocket = require('./utils/socketHandler'); // Import socket handler
@@ -33,7 +34,11 @@ initSocket(io);
 // Security Middleware
 // app.use(helmet());
 app.use(express.json());
-app.use(cors());
+app.use(cookieParser());
+app.use(cors({
+    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    credentials: true,
+}));
 // app.use(mongoSanitize());
 // app.use(hpp());
 
@@ -58,6 +63,8 @@ app.use('/api/orders', require('./routes/orders'));
 app.use('/api/users', require('./routes/users'));
 app.use('/api/payment', require('./routes/paymentRoutes'));
 app.use('/api/content', require('./routes/contentRoutes'));
+app.use('/api/coupons', require('./routes/couponRoutes'));
+app.use('/api/analytics', require('./routes/analyticsRoutes'));
 // Add chat routes if needed (e.g., getting history via REST), but socket handles real-time.
 // Let's add a route to get chat history for initial load.
 app.use('/api/chat', require('./routes/chatRoutes'));
