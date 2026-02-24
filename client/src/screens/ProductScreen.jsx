@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { useDispatch } from 'react-redux';
 import { addToCart } from '../slices/cartSlice';
@@ -282,25 +283,72 @@ const ProductScreen = () => {
                     </div>
                 </div>
 
-                {/* Mobile Sticky Footer Actions */}
-                <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white shadow-[0_-2px_10px_rgba(0,0,0,0.1)] flex z-[60]">
-                    <button
-                        onClick={addToCartHandler}
-                        disabled={product.countInStock === 0}
-                        className="flex-1 bg-white text-black font-bold py-4 text-sm uppercase tracking-wide disabled:opacity-50 border-r border-gray-200"
-                    >
-                        Add to Cart
-                    </button>
-                    <button
-                        onClick={addToCartHandler}
-                        disabled={product.countInStock === 0}
-                        className="flex-1 bg-yellow-400 text-gray-900 font-bold py-4 text-sm uppercase tracking-wide disabled:opacity-50"
-                    >
-                        Buy Now
-                    </button>
-                </div>
-                {/* Spacer for sticky footer */}
-                <div className="h-16 md:hidden"></div>
+                {/* Mobile Sticky Footer - Rendered via Portal directly on document.body
+                     This bypasses any parent CSS (relative/overflow/transform) that breaks position:fixed */}
+                {typeof document !== 'undefined' && createPortal(
+                    <div style={{
+                        position: 'fixed',
+                        bottom: 0,
+                        left: 0,
+                        right: 0,
+                        zIndex: 9999,
+                        display: 'flex',
+                        boxShadow: '0 -3px 12px rgba(0,0,0,0.15)',
+                        fontFamily: 'inherit',
+                    }} className="md:hidden">
+                        <button
+                            onClick={addToCartHandler}
+                            disabled={product.countInStock === 0}
+                            style={{
+                                flex: 1,
+                                background: '#ffffff',
+                                color: '#000',
+                                fontWeight: 700,
+                                padding: '15px 0',
+                                fontSize: '15px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                                borderRight: '1px solid #e0e0e0',
+                                borderTop: '1px solid #e8e8e8',
+                                cursor: product.countInStock === 0 ? 'not-allowed' : 'pointer',
+                                opacity: product.countInStock === 0 ? 0.5 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                            }}
+                        >
+                            <ShoppingCart size={18} />
+                            Add to Cart
+                        </button>
+                        <button
+                            onClick={addToCartHandler}
+                            disabled={product.countInStock === 0}
+                            style={{
+                                flex: 1,
+                                background: '#fb9a00',
+                                color: '#000',
+                                fontWeight: 700,
+                                padding: '15px 0',
+                                fontSize: '15px',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.04em',
+                                cursor: product.countInStock === 0 ? 'not-allowed' : 'pointer',
+                                opacity: product.countInStock === 0 ? 0.5 : 1,
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: '8px',
+                            }}
+                        >
+                            <Zap size={18} fill="currentColor" />
+                            Buy Now
+                        </button>
+                    </div>,
+                    document.body
+                )}
+                {/* Spacer so content isn't hidden behind sticky bar */}
+                <div className="h-20 md:hidden"></div>
             </div>
         </div>
     );

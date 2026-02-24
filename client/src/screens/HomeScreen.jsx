@@ -150,7 +150,7 @@ const HomeScreen = () => {
             {/* Categories Section */}
             <div className="bg-white shadow-sm mb-3 overflow-x-auto no-scrollbar">
                 <div className="container mx-auto px-4 py-3">
-                    <div className="flex justify-between md:justify-center min-w-max gap-4 md:gap-12">
+                    <div className="flex md:justify-center gap-4 md:gap-12">
                         {categories.map((cat, index) => (
                             <Link key={index} to={`/search/${cat.name}`} className="flex flex-col items-center group cursor-pointer gap-1">
                                 <div className="w-12 h-12 md:w-16 md:h-16 rounded-full overflow-hidden hover:scale-105 transition duration-300">

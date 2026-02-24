@@ -51,31 +51,34 @@ const Header = () => {
 
     return (
         <div className={`flex flex-col w-full z-50 sticky top-0 transition-all duration-300 ${scrolled ? 'shadow-md' : 'shadow-none'}`}>
-            {/* Top Notification Bar (Optional) */}
-            <div className="bg-gray-900 text-white text-[10px] md:text-xs py-1.5 text-center font-medium tracking-wide">
+            {/* Top Notification Bar */}
+            <div className="bg-gray-900 text-white text-[9px] sm:text-[10px] md:text-xs py-1 md:py-1.5 text-center font-medium tracking-wide">
                 Free Shipping on Orders Over ₹499 | Easy Returns
             </div>
 
             {/* Main Header */}
             <header className="bg-white border-b border-gray-100 relative z-50">
-                <div className="container mx-auto px-4 py-3 md:py-4 flex items-center justify-between gap-4 md:gap-8">
+                <div className="w-full px-2 sm:px-3 md:px-4 py-2 md:py-4 flex items-center justify-between gap-2 md:gap-8">
 
                     {/* Logo & Mobile Menu */}
-                    <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 sm:gap-2 flex-shrink-0">
                         <button
-                            className="lg:hidden text-gray-700 hover:text-primary transition"
+                            className="lg:hidden text-gray-700 hover:text-primary transition p-1"
                             onClick={() => setIsMenuOpen(true)}
                         >
-                            <Menu size={24} />
+                            <Menu size={20} />
                         </button>
 
                         <Link to="/" className="flex items-center gap-1 group">
-                            <span className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 tracking-tighter group-hover:opacity-90 transition inline-block">
+                            {/* Fluid font: xl on tiny, 2xl on sm, 3xl on md+ */}
+                            <span className="text-xl sm:text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-primary to-blue-600 tracking-tighter group-hover:opacity-90 transition inline-block leading-none">
                                 GAURY<span className="text-gray-800">KART</span>.
                             </span>
                         </Link>
-                        {/* Festive Text Only Visible When Holi Theme Active */}
-                        <span className="holi-festival-text hidden xl:inline-block">★ Holi Special ★</span>
+                        {/* Holi badge - stars on mobile, full text on sm+ */}
+                        <span className="holi-festival-text">
+                            ★<span className="holi-full-text"> Holi Special </span>★
+                        </span>
                     </div>
 
                     {/* Search Bar - Modern & Rounded */}
@@ -92,21 +95,21 @@ const Header = () => {
                     </form>
 
                     {/* Icons / Navigation */}
-                    <nav className="flex items-center gap-2 md:gap-6">
+                    <nav className="flex items-center gap-1 md:gap-6">
 
                         {/* Mobile Search Trigger (Visible only on small screens) */}
-                        <button className="md:hidden text-gray-600 hover:text-gray-900">
+                        <button className="md:hidden text-gray-600 hover:text-gray-900 p-1">
                             <Search size={22} />
                         </button>
 
-                        {/* Account Dropdown */}
+                        {/* Account Dropdown - icon always visible, text only on lg+ */}
                         <div className="relative group">
                             <button
-                                className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium py-2 rounded-lg transition"
+                                className="flex items-center gap-1 text-gray-600 hover:text-primary font-medium py-2 rounded-lg transition"
                                 onClick={() => setIsProfileOpen(!isProfileOpen)}
                             >
-                                <div className="bg-gray-100 p-2 rounded-full group-hover:bg-blue-50 transition">
-                                    <User size={20} />
+                                <div className="bg-gray-100 p-1.5 md:p-2 rounded-full group-hover:bg-blue-50 transition">
+                                    <User size={18} />
                                 </div>
                                 <div className="hidden lg:flex flex-col items-start leading-none">
                                     <span className="text-[10px] text-gray-500 font-semibold uppercase">Account</span>
@@ -152,9 +155,9 @@ const Header = () => {
                             </div>
                         </div>
 
-                        {/* Cart */}
-                        <Link to="/cart" className="flex items-center gap-2 text-gray-600 hover:text-primary font-medium group transition">
-                            <div className="relative bg-gray-100 p-2 rounded-full group-hover:bg-blue-50 transition">
+                        {/* Cart - ALWAYS visible on all screens */}
+                        <Link to="/cart" className="flex items-center gap-1 text-gray-600 hover:text-primary font-medium group transition">
+                            <div className="relative bg-gray-100 p-1.5 md:p-2 rounded-full group-hover:bg-blue-50 transition">
                                 <ShoppingCart size={20} />
                                 {cartItems.length > 0 && (
                                     <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center border-2 border-white shadow-sm">
