@@ -79,8 +79,8 @@ const HomeScreen = () => {
                     axios.get('/api/content')
                 ]);
 
-                setProducts(productsRes.data.products);
-                setContent(contentRes.data);
+                setProducts(productsRes.data?.products || []);
+                setContent(contentRes.data || null);
                 setLoading(false);
             } catch (err) {
                 setError(err.message);

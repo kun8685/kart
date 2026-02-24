@@ -3,7 +3,23 @@ const dotenv = require('dotenv');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
-const mongoSanitize = require('express-mongo-sanitize');
+// express-mongo-sanitize v2 is NOT compatible with Express v5 (req.query is read-only in Express 5)
+// Using a custom sanitize middleware instead
+const sanitizeInput = (obj) => {
+    if (!obj || typeof obj !== 'object') return;
+    Object.keys(obj).forEach(key => {
+        if (key.startsWith('$') || key.includes('.')) {
+            delete obj[key];
+        } else if (typeof obj[key] === 'object') {
+            sanitizeInput(obj[key]);
+        }
+    });
+};
+const mongoSanitizeMiddleware = (req, res, next) => {
+    sanitizeInput(req.body);
+    sanitizeInput(req.params);
+    next();
+};
 const connectDB = require('./config/db');
 const cookieParser = require('cookie-parser');
 const http = require('http'); // Import http
@@ -38,7 +54,7 @@ app.use(cors({
     origin: process.env.CLIENT_URL || 'http://localhost:5173',
     credentials: true,
 }));
-app.use(mongoSanitize());
+app.use(mongoSanitizeMiddleware);
 
 // Rate Limiting
 const limiter = rateLimit({

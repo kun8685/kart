@@ -56,7 +56,9 @@ const AnalyticsTracker = () => {
                 userId: userInfo ? userInfo._id : null
             };
             // Note: navigator.sendBeacon is better for unload events as they don't get cancelled
-            navigator.sendBeacon('/api/analytics/track', JSON.stringify(data));
+            const url = import.meta.env.VITE_SERVER_URL ? `${import.meta.env.VITE_SERVER_URL}/api/analytics/track` : '/api/analytics/track';
+            const blob = new Blob([JSON.stringify(data)], { type: 'application/json' });
+            navigator.sendBeacon(url, blob);
         };
 
         window.addEventListener('beforeunload', handleBeforeUnload);
