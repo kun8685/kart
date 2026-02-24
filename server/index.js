@@ -35,11 +35,21 @@ connectDB();
 const app = express();
 const server = http.createServer(app); // Create HTTP server
 
+// Allowed origins for CORS
+const allowedOrigins = [
+    'https://gaurykart.shop',
+    'https://www.gaurykart.shop',
+    'http://localhost:5173',
+    'http://localhost:3000',
+];
+if (process.env.CLIENT_URL) allowedOrigins.push(process.env.CLIENT_URL);
+
 // Initialize Socket.io
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL || 'http://localhost:5173',
-        methods: ["GET", "POST"]
+        origin: allowedOrigins,
+        methods: ["GET", "POST"],
+        credentials: true,
     }
 });
 
@@ -51,7 +61,14 @@ app.use(helmet({ crossOriginResourcePolicy: false }));
 app.use(express.json());
 app.use(cookieParser());
 app.use(cors({
-    origin: process.env.CLIENT_URL || 'http://localhost:5173',
+    origin: (origin, callback) => {
+        // Allow requests with no origin (mobile apps, curl, Postman)
+        if (!origin) return callback(null, true);
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+        return callback(new Error(`CORS blocked: ${origin}`), false);
+    },
     credentials: true,
 }));
 app.use(mongoSanitizeMiddleware);
